@@ -37,15 +37,6 @@ _install_desktop_environment() {
     # Install Desktop Apps
     _info "Installing desktop applications"
     _chroot "pacman --noconfirm -S ${_desktop_apps}"
-
-    # Install AUR package manager
-    _info "Installing AUR package manager"
-    _chroot "git clone https://aur.archlinux.org/yay.git"
-    _chroot "(cd yay && makepkg -csi --noconfirm PKGBUILD)"
-    
-    # Install Desktop ( AUR ) Apps
-    _info "Installing desktop ( AUR ) applications"
-    _chroot "yay --noconfirm -S ${_desktop_apps_aur}"
 }
 
 _desktop_settings() {
