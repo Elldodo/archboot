@@ -7,7 +7,7 @@
 export _gnome="gnome gnome-extra"
 
 # Kde
-export _kde="plasma kde-applications"
+export _kde="plasma-desktop kdebase-meta"
 
 # Lxde
 export _lxde="lxde"
