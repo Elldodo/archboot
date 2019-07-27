@@ -22,19 +22,7 @@
 _ask_user_informations() {
 
     # Language
-    until grep -Fxq "${language}" ./language; do
-        _note "list of available language code is in the archboot wiki"
-        _prompt "Enter language code:" "(e.g., fr_FR, en_US, de_DE)"
-        read -r language
-    done
-    keymap_code=$(echo ${language} | cut -d'_' -f 1)
-
-    # TimeZone
-    until grep -Fxq "${timezone}" ./timezone; do
-        _note "list of available time zone code is in the archboot wiki"
-        _prompt "Enter time zone code:" "(e.g., Europe/Paris, Asia/Tokyo)"
-        read -r timezone
-    done
+    keymap_code=$(echo fr_FR | cut -d'_' -f 1)
 
     # Hostname
     until [[ ${#HOST_name} -ge 3 \
@@ -134,6 +122,6 @@ _ask_user_informations() {
     fi
 
     # Export required vars
-    export language; export keymap_code; export timezone
+    export language; export keymap_code;
     export HOST_name; export ROOT_passwd; export USER_name; export USER_passwd
 }
