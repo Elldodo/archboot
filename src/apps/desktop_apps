@@ -51,4 +51,4 @@ export _numlock="numlockx"
 export _term="terminator"
 
 # Apps
-export _desktop_apps="vlc firefox qtcreator"
+export _desktop_apps="vlc firefox qtcreator qbittorrent"
