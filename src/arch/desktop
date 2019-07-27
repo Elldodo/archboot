@@ -44,8 +44,8 @@ _install_desktop_environment() {
     _chroot "(cd yay && makepkg -csi --noconfirm PKGBUILD)"
     
     # Install Desktop ( AUR ) Apps
-    _info "Installing desktop applications"
-    _chroot "yaourt --noconfirm -S ${!_desktop_apps_aur}"
+    _info "Installing desktop ( AUR ) applications"
+    _chroot "yay --noconfirm -S ${!_desktop_apps_aur}"
 }
 
 _desktop_settings() {
