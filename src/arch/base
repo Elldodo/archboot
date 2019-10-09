@@ -38,7 +38,7 @@ _base() {
 
     # initramfs
     _info "Setting initramfs"
-    _chroot "mkinitcpio -p linux"
+    _chroot "mkinitcpio -P"
 
     # root passwd
     _info "Setting root password"

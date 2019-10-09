@@ -12,9 +12,6 @@
 #      Username.......: an username such as <bobby>
 #      User passwd....: secure password must be used
 #      User rights....: add user to all groups and ALL power in sudoers
-#      Desktop Env....: Gnome - KDE - Deepin - Xfce - LXDE - Cinnamon
-#                       Budgie - Enlightenment - MATE - LXQt
-#      Display Man....: Gdm - LightDM - Sddm - Lxdm - Xdm
 #
 # More informations on installation steps are available in the wiki:
 # https://github.com/grm34/archboot/wiki/Installation-step-by-step
@@ -80,51 +77,7 @@ _ask_user_informations() {
     _confirm "Give all rights to user ${USER_name}?"
     case ${confirm} in y|Y) export power="yes";; esac
     unset confirm
-
-    # Desktop Environment
-    _confirm "Do you wish to install Desktop Environment?"
-    case ${confirm} in y|Y)
-        until [[ ${desk} =~ ^([1-9]|10)$ ]]; do
-            _select "Gnome" "KDE" "MATE" "Xfce" \
-"LXDE" "LXQt" "Deepin" "Budgie" "Cinnamon" "Enlightenment"
-            read -r desk
-        done
-        desktop_choice=\
-(none gnome kde mate xfce4 lxde lxqt deepin budgie cinnamon enlightenment)
-        export desktop=${desktop_choice[${desk}]}
-        ;;
-    esac
-    unset confirm
-
-    # Display Manager
-    if [[ ! -z ${desktop+x} ]]; then
-
-        _confirm "Use default Display Manager?"
-        case ${confirm} in
-
-            # Custom display manager
-            n|N)
-                until [[ ${disp} =~ ^([1-5])$ ]]; do
-                    _select "Gdm" "LightDM" "Sddm" "Lxdm" "Xdm"
-                    read -r disp
-                done
-                display_choice=(none gdm lightdm sddm lxdm xdm)
-                export display_man=${display_choice[${disp}]}
-                ;;
-
-            # Default display manager
-            *)
-                case ${desktop} in
-                    gnome|budgie|cinnamon|mate) export display_man="gdm";;
-                    kde) export display_man="sddm";;
-                    deepin|enlightenment) export display_man="lightdm";;
-                    xfce4|lxde|lxqt) export display_man="lxdm";;
-                esac
-                ;;
-        esac
-        unset confirm
-    fi
-
+    
     # Export required vars
     export language; export keymap_code; export timezone
     export HOST_name; export ROOT_passwd; export USER_name; export USER_passwd
