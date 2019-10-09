@@ -10,8 +10,8 @@ export _arch="base base-devel"
 export _intel="intel-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap rp-pppoe dhclient \
-iw wpa_supplicant wireless_tools git gitolite exfat-utils rsnapshot qbs jenkins htop cronie"
+export _netapps="ntp networkmanager wget nmap rp-pppoe dhclient htop nginx \
+fontconfig libx11 pcre2 double-conversion mesa-libgl libxi libsm xcb-util-renderutil xcb-util-image xcb-util-keysyms xcb-util-wm libxkbcommon-x11 openssl-1.0"
 
 # Bootloader
 export _bootapps="grub os-prober gptfdisk efibootmgr"
