@@ -4,14 +4,14 @@
 # ============================================================================
 
 # Arch Linux
-export _arch="base linux"
+export _arch="base linux nano htop fail2ban"
 
 # Microcode (in case of Intel CPU)
 export _intel="intel-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap rp-pppoe dhclient htop nginx \
-fontconfig libx11 pcre2 double-conversion mesa-libgl libxi libsm xcb-util-renderutil xcb-util-image xcb-util-keysyms xcb-util-wm libxkbcommon-x11 openssl-1.0"
+export _netapps="nginx fontconfig libx11 pcre2 double-conversion mesa-libgl \
+libxi libsm xcb-util-renderutil xcb-util-image xcb-util-keysyms xcb-util-wm libxkbcommon-x11 openssl"
 
 # Bootloader
 export _bootapps="grub os-prober"
