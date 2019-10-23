@@ -11,7 +11,7 @@ export _intel="intel-ucode"
 
 # Network
 export _netapps="ntp networkmanager wget nmap rp-pppoe dhclient \
-iw wpa_supplicant wireless_tools git gitolite exfat-utils rsnapshot qbs jenkins htop cronie"
+iw wpa_supplicant wireless_tools git gitolite exfat-utils rsnapshot qbs jenkins htop cronie zsh"
 
 # Bootloader
 export _bootapps="grub os-prober gptfdisk efibootmgr"
