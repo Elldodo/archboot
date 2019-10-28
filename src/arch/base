@@ -65,5 +65,5 @@ _base() {
     fi
     
     _info "Setting user redmine"
-    _chroot "useradd -g users -p redmine -m -s /bin/bash redmine
+    _chroot "useradd -g users -p redmine -m -s /bin/bash redmine"
 }
