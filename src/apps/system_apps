@@ -4,7 +4,7 @@
 # ============================================================================
 
 # Arch Linux
-export _arch="base linux nano htop fail2ban svn git openssl openssh openvpn mariadb rvm certbot certbot-nginx samba"
+export _arch="base linux nano htop fail2ban git openssl openssh openvpn mariadb rvm certbot certbot-nginx samba"
 
 # Microcode (in case of Intel CPU)
 export _intel="intel-ucode"
