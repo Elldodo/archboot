@@ -10,7 +10,7 @@ export _arch="base linux"
 export _intel="intel-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap dhclient nano htop fail2ban git openssl openssh openvpn mariadb certbot certbot-nginx samba ntp networkmanager wget nmap rp-pppoe dhclient htop nginx redmine imagemagick gitolite jenkins"
+export _netapps="ntp networkmanager wget nmap dhclient gcc make cmake nano htop fail2ban rsnapshot git openssl openssh openvpn mariadb certbot certbot-nginx samba ntp networkmanager wget nmap rp-pppoe dhclient htop nginx redmine imagemagick gitolite jenkins"
 
 # Bootloader
 export _bootapps="grub os-prober"
