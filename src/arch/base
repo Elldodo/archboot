@@ -48,6 +48,8 @@ _base() {
     _info "Installing network"
     _chroot "pacman --noconfirm -S ${_netapps}
     systemctl enable NetworkManager"
+    
+    
 
     # Intel Microcode
     lscpu | grep "Intel" >/dev/null 2>&1
@@ -63,5 +65,8 @@ _base() {
     if [[ ! -z ${power+x} ]]; then
         echo "${USER_name} ALL=(ALL) ALL" >> /mnt/etc/sudoers
     fi
+    
+    _info "adding user gitolite"
+    _chroot "useradd -m -s /bin/bash gitolite"
     
 }
