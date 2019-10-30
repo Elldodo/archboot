@@ -63,4 +63,5 @@ _base() {
     if [[ ! -z ${power+x} ]]; then
         echo "${USER_name} ALL=(ALL) ALL" >> /mnt/etc/sudoers
     fi
+    
 }
