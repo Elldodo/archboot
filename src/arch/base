@@ -66,7 +66,11 @@ _base() {
         echo "${USER_name} ALL=(ALL) ALL" >> /mnt/etc/sudoers
     fi
     
-    _info "adding user gitolite"
+    _info "adding user gitolite and server"
     _chroot "useradd -m -s /bin/bash gitolite"
+	_chroot "useradd -m -s /bin/bash server"
     
+    _info "adding user server"
+    _chroot "groupadd -r sambashare"
+    _chroot "useradd -g sambashare -m -s /bin/bash server"
 }
