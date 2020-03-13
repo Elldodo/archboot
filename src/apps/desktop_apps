@@ -47,8 +47,5 @@ ttf-liberation ttf-freefont ttf-arphic-uming ttf-baekmuk"
 # Numlock
 export _numlock="numlockx"
 
-# Terminal
-export _term="terminator"
-
 # Apps
-export _desktop_apps="vlc firefox qtcreator qbittorrent"
+export _desktop_apps="vlc firefox qtcreator qbittorrent virtualbox"

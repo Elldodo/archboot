@@ -10,7 +10,7 @@ export _default="xf86-video-vesa"
 # ============================================================================
 
 # Driver Intel
-export _intel="xf86-video-intel"
+export _intel="mesa"
 
 # OpenGL Intel (open source)
 export _openGL_x64_intel="mesa"
