@@ -22,12 +22,20 @@
 _ask_user_informations() {
 
     # Language
-    language=fr_FR
+    until grep -Fxq "${language}" ./language; do
+        _note "list of available language code is in the archboot wiki"
+        _prompt "Enter language code:" "(e.g., fr_FR, en_US, de_DE)"
+        read -r language
+    done
     keymap_code=$(echo ${language} | cut -d'_' -f 1)
 
     # TimeZone
-    timezone=Europe/Paris
-    
+    until grep -Fxq "${timezone}" ./timezone; do
+        _note "list of available time zone code is in the archboot wiki"
+        _prompt "Enter time zone code:" "(e.g., Europe/Paris, Asia/Tokyo)"
+        read -r timezone
+    done
+
     # Hostname
     until [[ ${#HOST_name} -ge 3 \
     && ${HOST_name} =~ ^[a-zA-Z0-9][-a-zA-Z0-9_]+$ ]]; do
@@ -79,6 +87,24 @@ _ask_user_informations() {
     # User Rights
     _confirm "Give all rights to user ${USER_name}?"
     case ${confirm} in y|Y) export power="yes";; esac
+    unset confirm
+
+    # Linux Kernel
+    _confirm "Do you wish to install custom Linux Kernel?"
+    case ${confirm} in
+        y|Y)
+            until [[ ${kern} =~ ^([1-9]|4)$ ]]; do
+                _select "Default" "Hardened" "LTS" "ZEN"
+                read -r kern
+            done
+            kernel_choice=\
+(none default_kernel hardened_kernel lts_kernel zen_kernel)
+            export kernel=${kernel_choice[${kern}]}
+            ;;
+        *)
+            export kernel="default_kernel"
+            ;;
+    esac
     unset confirm
 
     # Desktop Environment

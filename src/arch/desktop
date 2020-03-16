@@ -26,18 +26,14 @@ _install_desktop_environment() {
     _chroot "pacman --noconfirm -S ${_numlock}"
 
     # Install Terminal
-    _info "Installing terminal"
-    _chroot "pacman --noconfirm -S ${_term}"
+    _info "Installing applications"
+    _chroot "pacman --noconfirm -S ${_apps}"
 
     # Install Desktop Environment
     _info "Installing ${desktop}"
     user_desktop="_${desktop}"
     _chroot "pacman --noconfirm -S ${!user_desktop}"
-    
-    # Install Desktop Apps
-    _info "Installing desktop applications"
-    _chroot "pacman --noconfirm -S ${_desktop_apps}"
-}
+ }
 
 _desktop_settings() {
 

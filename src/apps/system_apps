@@ -4,13 +4,19 @@
 # ============================================================================
 
 # Arch Linux
-export _arch="base base-devel linux"
+export _arch="base base-devel linux-firmware"
+
+# Kernel
+export _default_kernel="linux"
+export _hardened_kernel="linux-hardened"
+export _lts_kernel="linux-lts"
+export _zen_kernel="linux-zen"
 
 # Microcode (in case of Intel CPU)
 export _intel="intel-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap dhclient \
+export _netapps="ntp networkmanager wget nmap rp-pppoe dhclient \
 iw wpa_supplicant wireless_tools git gitolite exfat-utils rsnapshot qbs jenkins htop cronie zsh redshift p7zip"
 
 # Bootloader
