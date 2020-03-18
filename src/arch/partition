@@ -20,11 +20,18 @@ _partition() {
     _info "Listing disk and partitions"
 
     # Select disk to use
-    until [[ ${_disk} =~ ^(sd|hd)[a-z]{1}$ ]]; do
+    until [[ ${_disk} =~ ^(sd|hd|nvme0n)[a-z0-9]{1}$ ]]; do
         fdisk -l
-        _prompt "Enter disk to use:" "(e.g., sda)"
+        _prompt "Enter disk to use:" "(e.g., sda, nvme0n1)"
         read -r _disk
     done
+
+    # Define partition order
+    if [[ ${_disk} =~ "nvme0n" ]]; then
+        export part_order=(0 p1 p2 p3 p4)
+    else
+        export part_order=(0 1 2 3 4)
+    fi
 
     # Create MBR or GPT Table
     fdisk -l /dev/${_disk}
@@ -121,6 +128,54 @@ _partition() {
     partprobe /dev/${_disk} && sleep 1s
     yes | _check mkfs.ext4 /dev/${_disk}${part_order[4]}
 
-    # Export
+    # Export required vars
     export _disk
+    export _boot="/dev/${_disk}${part_order[1]}"
+    export _swap="/dev/${_disk}${part_order[2]}"
+    export _system="/dev/${_disk}${part_order[3]}"
+    export _home="/dev/${_disk}${part_order[4]}"
+}
+
+custom_partition() {
+
+    _info "Listing disk and partitions"
+
+    # Select boot
+    until [[ ${_bt} =~ ^(sd|hd|nvme0n)[a-z0-9]{1,3}$ ]]; do
+        fdisk -l
+        _prompt "Enter partition for boot:" "(e.g., sda2, nvme0n1p2)"
+        read -r _bt
+    done
+
+    # Select swap
+    until [[ ${_swp} =~ ^(sd|hd|nvme0n)[a-z0-9]{1,3}$ ]]; do
+        fdisk -l
+        _prompt "Enter partition for swap:" "(e.g., sda3, nvme0n1p3)"
+        read -r _swp
+    done
+
+    # Select system
+    until [[ ${_sys} =~ ^(sd|hd|nvme0n)[a-z0-9]{1,3}$ ]]; do
+        fdisk -l
+        _prompt "Enter partition for system:" "(e.g., sda1, nvme0n1p1)"
+        read -r _sys
+    done
+
+    # Select home
+    until [[ ${_hm} =~ ^(sd|hd|nvme0n)[a-z0-9]{1,3}$ ]]; do
+        fdisk -l
+        _prompt "Enter partition for home:" "(e.g., sda4, nvme0n1p4)"
+        read -r _hm
+    done
+
+    # Export required vars
+    if [[ ${_bt} =~ "nvme0n" ]]; then
+        export _disk=${_bt%p*}
+    else
+        export _disk=${_bt//[0-9]}
+    fi
+    export _boot="/dev/${_bt}"
+    export _swap="/dev/${_swp}"
+    export _system="/dev/${_sys}"
+    export _home="/dev/${_hm}"
 }

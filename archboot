@@ -1,8 +1,8 @@
 #!/bin/bash
 __appname__="archboot"
-__version__="v2.8.0"
-__branch__="m6"
-__author__="@elldodo"
+__version__="v2.8.2"
+__branch__="master"
+__author__="@grm34"
 __license__="Apache v2.0 License"
 
 _archboot_banner() {
@@ -17,15 +17,15 @@ ${blue}
 ${nc}
 Arch Linux is a light and fast distribution whose concept
 is to remain  as simple as possible.  In the same purpose
-this script  performs  minimalist  installation,  it only
-installs  the required  packages,  in order  to give free
+this  script  perform  minimalist  installation,  it only
+install  the required  packages,  in order  to  give free
 choice to  the user.  Pretty simple,  it just  prompt for
 hostname, username, password, which disk to use, required
 partitions, language, timezone and if you wish to install
 a desktop  environment.  According to the  chosen one and
 in order  to get  complete  support, additional  packages
-may be  required. For more  informations, take a  look in
-the archboot wiki: https://github.com/grm34/archboot/wiki
+may be  required. For more  informations, take a  look at
+the wiki.........: https://github.com/grm34/archboot/wiki
 """
 }
 
@@ -72,7 +72,7 @@ EOF
 _logs() {
     _info "Setting archboot log"
     datetime=$(date '+%d-%m-%Y')
-    log="archboot_${datetime}.log"
+    log="${__appname__}-${__version__}_${datetime}.log"
 }
 
 # Set system clock
@@ -97,8 +97,8 @@ _check() {
 _cleanup() {
     echo -e "\nCleaning up archboot..."
     for source in *; do
-        if [[ ${source} =~ ^(base|bootloader|firmware|\
-mounting|partition|user|system_apps|\
+        if [[ ${source} =~ ^(base|bootloader|desktop|display|firmware|\
+mounting|partition|user|vga|desktop_apps|display_apps|system_apps|vga_apps|\
 00-keyboard|language|timezone|xprofile|background.png|Grub2-themes)$ ]]; then
             rm -rf ${source}
         fi
@@ -175,6 +175,8 @@ _end() {
 # Here we check internet connection before downloading and importing sources.
 # Sources are sorted by type: applications and scripts [src/apps & src/arch]
 # Once done we could ask for user informations and stored them to run install.
+# In case of desktop environment, additionals sources will be imported and
+# scan of VGA controller(s) is done to select appropriate VGA Drivers.
 
 # Display archboot banner
 _archboot_banner
@@ -217,8 +219,46 @@ source ./mounting; source ./partition; source ./user; source ./system_apps
 # Ask for user informations [src/arch/user]
 _ask_user_informations
 
+# If Desktop Environment
+if [[ ! -z ${desktop+x} ]]; then
+
+    # Download desktop sources
+    _info "Downloading desktop sources"
+    _wget ${_url}/src/arch/vga             # to scan/install VGA Controller
+    _wget ${_url}/src/arch/desktop         # to install Desktop Environment
+    _wget ${_url}/src/arch/display         # to install Display Manager
+    _wget ${_url}/src/apps/vga_apps        # to load VGA apps
+    _wget ${_url}/src/apps/desktop_apps    # to load Desktop apps
+    _wget ${_url}/src/apps/display_apps    # to load Display Manager apps
+
+    # Import desktop sources
+    _info "Importing desktop sources"
+    source ./vga; source ./desktop; source ./display
+    source ./vga_apps; source ./desktop_apps; source ./display_apps
+
+    # Scan VGA Controller and select appropriate driver [src/arch/vga]
+    _scan_vga_controller
+fi
+
 # Prepare the system
-_clock; _logs; _firmware; _partition; _mounting
+_clock; _logs; _firmware
+
+# Manage partitions
+_note "WARNING! Enter NO only if partitions properly created and formated"
+_confirm "Are you installing Arch Linux on a fresh disk?"
+case ${confirm} in
+    y|Y)
+        _partition
+        ;;
+    *)
+        _custom_partition
+        ;;
+esac
+unset confirm
+
+# Mount partitions
+_mounting
+
 _note "system ready! Partitions mounted & swap activated."
 
 # ARCHBOOT SYSTEM INSTALLATION
@@ -227,11 +267,20 @@ _note "system ready! Partitions mounted & swap activated."
 # user informations stored. We can start Arch Linux installation.
 # First step is to install base system [src/arch/base] and 2nd to install Grub
 # bootloader [src/arch/bootloader]. We use <tee> to get logs of those steps.
+# In case of desktop environment we install VGA Drivers and Display Manager.
+# If system won't start desktop environment after reboot, check the logs and
+# open an issue on GitHub. Logs are availables in /var/log/archboot.
 
 _confirm "Do you wish to install Arch Linux now?"
 case ${confirm} in
     y|Y)
         (_base; _bootloader) 2>&1 | tee -a ${log}
+
+        # Install desktop environment
+        if [[ ! -z ${desktop+x} ]]; then
+            (_install_vga_controller; _install_desktop_environment; \
+            _display_manager; _desktop_settings) 2>&1 | tee -a ${log}
+        fi
 
         # Logfile path
         _info "Setting logfile path"
