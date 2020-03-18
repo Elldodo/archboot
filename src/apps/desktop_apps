@@ -7,7 +7,7 @@
 export _gnome="gnome gnome-extra"
 
 # Kde
-export _kde="plasma-desktop kdebase-meta"
+export _kde="plasma-desktop kdebase-meta plasma-nm plasma-wayland-integration"
 
 # Lxde
 export _lxde="lxde"
@@ -48,4 +48,4 @@ ttf-liberation ttf-freefont ttf-arphic-uming ttf-baekmuk"
 export _numlock="numlockx"
 
 # Terminal
-export _apps="vlc firefox qtcreator qbittorrent virtualbox"
+export _apps="vlc firefox qtcreator qbittorrent virtualbox netbeans discord"
