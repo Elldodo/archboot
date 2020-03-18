@@ -17,7 +17,7 @@ export _intel="intel-ucode"
 
 # Network
 export _netapps="ntp networkmanager wget nmap dhclient \
-nginx openssl"
+nginx openssl certbot certbot-nginx"
 
 # Bootloader
 export _bootapps="grub os-prober"
