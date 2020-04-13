@@ -1,35 +1,35 @@
 #!/bin/bash
 
-# MOUNT PARTITIONS & SWAP
+#                   MOUNT PARTITIONS & ACTIVATE SWAP
 # ============================================================================
-# Here we mount all previously created required partitions and activate swap.
-# More informations on mounting filesystem are available in the official
-# documentation:
+# Here we mount all previously created partitions and activate swap.
+# All steps are described in the official documentation:
 # https://wiki.archlinux.org/index.php/File_systems#Mount_a_file_system
+# ============================================================================
 
-_mounting() {
+_mount_partitions() {
 
-    _info "Mounting partitions & swap"
+    _info "Mounting partitions and activating swap"
 
-    # System on /mnt
-    _check mount ${_system} /mnt
+    # Mount system > /mnt
+    _check mount ${SYSTEM_PARTITION} /mnt
 
     # Create boot and home folders
     _check mkdir /mnt/{boot,home}
 
-    # -- UEFI -- Boot on /mnt/boot/efi
-    if [[ ${FIRMWARE} == "UEFI" ]]; then
-        _check mkdir -p /mnt/boot/efi/EFI
-        _check mount -t vfat ${_boot} /mnt/boot/efi
-
-    # -- BIOS -- Boot on /mnt/boot
-    else
-        _check mount ${_boot} /mnt/boot
-    fi
+    # Mount boot > /mnt/boot
+    _check mount ${MOUNT_TYPE}${BOOT_PARTITION} /mnt/boot
 
     # Activate swap
-    _check swapon ${_swap}
+    if [[ -n ${SWAP_PARTITION+x} ]]; then
+        _check swapon ${SWAP_PARTITION}
+    fi
 
-    # Home on /mnt/home
-    _check mount ${_home} /mnt/home
+    # Mount home > /mnt/home
+    if [[ -n ${HOME_PARTITION+x} ]]; then
+        _check mount ${HOME_PARTITION} /mnt/home
+    fi
 }
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================

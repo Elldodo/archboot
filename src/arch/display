@@ -1,0 +1,91 @@
+#!/bin/bash
+
+#                           DISPLAY MANAGER
+# ============================================================================
+# Here we install and configure display manager to properly start desktop.
+#
+#     Default settings:
+#
+#       GDM........: Gnome / Budgie / Cinnamon / Mate
+#       LIGHTDM....: Deepin / Enlightenment
+#       SDDM.......: Kde
+#       LXDM.......: Xfce4 / Lxde / Lxqt
+#
+# User is able to install the display manager of his choice.
+# All steps are described in the official documentation:
+# https://wiki.archlinux.org/index.php/Display_manager
+# ============================================================================
+
+_install_display_manager() {
+
+    # Install Display Manager
+    _info "Installing ${DISPLAY_MAN,,} display manager"
+    _chroot "pacman --noconfirm -S ${!DISPLAY_MAN}"
+    _chroot "systemctl enable ${DISPLAY_MAN,,}"
+
+    # Start command of each Desktop Environment
+    case ${DESKTOP} in
+        GNOME|MATE|CINNAMON) SESSION="/usr/bin/${DESKTOP,,}-session";;
+        KDE|XFCE4|LXDE|LXQT) SESSION="/usr/bin/start${DESKTOP,,}";;
+        ENLIGHTENMENT) SESSION="/usr/bin/enlightenment_start";;
+        BUDGIE) SESSION="/usr/bin/budgie-desktop";;
+        DEEPIN) SESSION="/usr/bin/startdde";;
+    esac
+
+    # Configure display manager
+    _info "Configuring ${DISPLAY_MAN,,} display manager"
+
+    # GDM
+    if [[ ${DISPLAY_MAN} == "GDM" ]]; then
+        wget ${URL}/conf/xprofile
+        mv xprofile /mnt/etc/xprofile
+
+    # LIGHTDM
+    elif [[ ${DISPLAY_MAN} == "LIGHTDM" ]]; then
+
+        # Select Greeter
+        case ${DESKTOP} in
+            DEEPIN) GREETER="deepin";;
+            KDE) GREETER="kde";;
+            *) GREETER="gtk";;
+        esac
+
+        # Install Greeter
+        if [[ ${DESKTOP} != "DEEPIN" ]]; then
+            _info "Installing lightdm ${GREETER} greeter"
+            _chroot "pacman --noconfirm -S lightdm-${GREETER}-greeter"
+        fi
+
+        # Configure Greeter
+        DEFAULT_SESSION="#greeter-session=example-gtk-gnome"
+        SESSION="greeter-session=lightdm-${GREETER}-greeter"
+        NUMON="greeter-setup-script=/usr/bin/numlockx on"
+        NUMOFF="#greeter-setup-script="
+        sed -i -e \
+"s|${DEFAULT_SESSION}|${SESSION}|g" /mnt/etc/lightdm/lightdm.conf
+        sed -i -e "s|${NUMOFF}|${NUMON}|g" /mnt/etc/lightdm/lightdm.conf
+
+    # SDDM
+    elif [[ ${DISPLAY_MAN} == "SDDM" ]]; then
+        _chroot "sddm --example-config > /etc/sddm.conf"
+        sed -i -e "s|Session=|Session=${SESSION}|g" /mnt/etc/sddm.conf
+        sed -i -e "s/Numlock=none/Numlock=on/g" /mnt/etc/sddm.conf
+
+    # LXDM
+    elif [[ ${DISPLAY_MAN} == "LXDM" ]]; then
+        DEFAULT_SESSION="# session=/usr/bin/startlxde"
+        sed -i -e \
+"s|${DEFAULT_SESSION}|session=${SESSION}|g" /mnt/etc/lxdm/lxdm.conf
+        sed -i -e "s/# numlock=0/numlock=1/g" /mnt/etc/lxdm/lxdm.conf
+        sed -i -e "s/white=/white=${USER_NAME}/g" /mnt/etc/lxdm/lxdm.conf
+        sed -i -e "s/black=/black=root/g" /mnt/etc/lxdm/lxdm.conf
+
+    # XDM
+    elif [[ ${DISPLAY_MAN} == "XDM" ]]; then
+        echo ${SESSION} > /mnt/home/${USER_NAME}/.xsession
+        chmod 700 /mnt/home/${USER_NAME}/.xsession
+    fi
+}
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================

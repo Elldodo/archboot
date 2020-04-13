@@ -1,157 +1,184 @@
 #!/bin/bash
 
-# USER INFORMATIONS
+#                           USER MANAGEMENT
 # ============================================================================
-# Here we prompt all required informations to the user and stored them.
-# Required informations:
+# Here we ask all required variables to the user and we store them.
 #
-#      Language.......: list of avalaible language code is in the wiki
-#      TimeZone.......: list of available timezone code is in the wiki
-#      Hostname.......: a computer name such as <my-favorite-computer>
-#      Root passwd....: secure password must be used
-#      Username.......: an username such as <bobby>
-#      User passwd....: secure password must be used
-#      User rights....: add user to all groups and ALL power in sudoers
-#      Desktop Env....: Gnome - KDE - Deepin - Xfce - LXDE - Cinnamon
-#                       Budgie - Enlightenment - MATE - LXQt
-#      Display Man....: Gdm - LightDM - Sddm - Lxdm - Xdm
+#    Required variables:
 #
-# More informations on installation steps are available in the wiki:
-# https://github.com/grm34/archboot/wiki/Installation-step-by-step
+#      LANGUAGE.......: full list is available in the wiki
+#      KEYMAP.........: keymap language code for keyboard
+#      HOST_NAME......: computer name such as <my-favorite-computer>
+#      ROOTPASSWD.....: at least 6 chars long with 1 letter & 1 digit
+#      USER_NAME......: such as <bobby_is_not_a_loser>
+#      USERPASSWD.....: at least 6 chars long with 1 letter & 1 digit
+#      POWER..........: add user to all groups and enable rights in sudoers
+#      KERNEL.........: DEFAULT - HARDENED - LTS - ZEN
+#      DESKTOP........: GNOME - KDE - DEEPIN - XFCE - LXDE - CINNAMON
+#                       BUDGIE - ENLIGHTENMENT - MATE - LXQT
+#      DISPLAY_MAN....: GDM - LIGHTDM - SDDM - LXDM - XDM
+#
+# Then we enable user rights in <sudoers> and we add him to all groups.
+# ============================================================================
 
-_ask_user_informations() {
+_get_user_variables() {
+    unset CONFIRM
 
     # Language
-    until grep -Fxq "${language}" ./language; do
-        _note "list of available language code is in the archboot wiki"
+    until grep -Fxq "${LANGUAGE}" ./language; do
+        _note "full list is available in the wiki."
         _prompt "Enter language code:" "(e.g., fr_FR, en_US, de_DE)"
-        read -r language
+        read -r LANGUAGE
     done
-    keymap_code=$(echo ${language} | cut -d'_' -f 1)
+    export LANGUAGE
 
-    # TimeZone
-    until grep -Fxq "${timezone}" ./timezone; do
-        _note "list of available time zone code is in the archboot wiki"
-        _prompt "Enter time zone code:" "(e.g., Europe/Paris, Asia/Tokyo)"
-        read -r timezone
-    done
+    # Keymap
+    KEYMAP=$(echo ${LANGUAGE} | cut -d'_' -f 1)
+    export KEYMAP
 
     # Hostname
-    until [[ ${#HOST_name} -ge 3 \
-    && ${HOST_name} =~ ^[a-zA-Z0-9][-a-zA-Z0-9_]+$ ]]; do
+    until [[ ${#HOST_NAME} -ge 3 \
+&& ${HOST_NAME} =~ ^[a-zA-Z0-9][-a-zA-Z0-9_]{1,31}$ ]]; do
         _prompt "Enter hostname:" "(e.g., my-favorite-computer)"
-        read -r HOST_name
+        read -r HOST_NAME
     done
+    export HOST_NAME
 
     # Root Password
-    until [[ ${#a} -ge 8 && "${a}" == *[a-z]* && "${a}" == *[0-9]* ]]; do
-        _note \
-"password should be at least 8 chars long with 1 letter and 1 digit"
-        _prompt "Enter password for root:"
-        read -rs a
+    until [[ ${#A} -ge 6 && ${A} == *[a-z]* && ${A} == *[0-9]* ]]; do
+        _note "should be at least 6 chars long with 1 letter & 1 digit"
+        _prompt "Enter root password:"
+        read -rs A
     done
     echo
 
     # Confirm Root Password
-    _prompt "Confirm password for root:"
-    read -rs ROOT_passwd
-    if [[ ${ROOT_passwd} != "${a}" ]]; then
+    _prompt "Confirm root password:"
+    read -rs ROOTPASSWD
+    if [[ ${ROOTPASSWD} != "${A}" ]]; then
         _error "passwords does not match!"
     fi
+    export ROOTPASSWD
     echo
 
     # Username
-    until [[ ${#USER_name} -ge 3 \
-    && ${USER_name} =~ ^[a-zA-Z0-9][-a-zA-Z0-9_]+$ ]]; do
+    until [[ ${#USER_NAME} -ge 2 && ${USER_NAME} \
+=~ ^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]; do
         _prompt "Enter username:" "(e.g., johnny)"
-        read -r USER_name
+        read -r USER_NAME
     done
+    export USER_NAME
 
     # User Password
-    until [[ ${#b} -ge 8 && "${b}" == *[a-z]* && "${b}" == *[0-9]* ]]; do
-        _note \
-"password should be at least 8 chars long with 1 letter and 1 digit"
-        _prompt "Enter password for user ${USER_name}:"
-        read -rs b
+    until [[ ${#B} -ge 6 && ${B} == *[a-z]* && ${B} == *[0-9]* ]]; do
+        _note "should be at least 6 chars long with 1 letter & 1 digit"
+        _prompt "Enter password for user ${USER_NAME}:"
+        read -rs B
     done
     echo
 
     # Confirm User Password
-    _prompt "Confirm password for user ${USER_name}:"
-    read -rs USER_passwd
-    if [[ ${USER_passwd} != "${b}" ]]; then
+    _prompt "Confirm password for user ${USER_NAME}:"
+    read -rs USERPASSWD
+    if [[ ${USERPASSWD} != "${B}" ]]; then
         _error "passwords does not match!"
     fi
+    export USERPASSWD
     echo
 
     # User Rights
-    _confirm "Give all rights to user ${USER_name}?"
-    case ${confirm} in y|Y) export power="yes";; esac
-    unset confirm
+    _confirm "Do you wish to give all rights to user ${USER_NAME}?"
+    case ${CONFIRM} in
+        y|Y|yes|Yes|YES)
+            export POWER="yes"
+            ;;
+    esac
+    unset CONFIRM
 
     # Linux Kernel
-    _confirm "Do you wish to install custom Linux Kernel?"
-    case ${confirm} in
-        y|Y)
-            until [[ ${kern} =~ ^([1-9]|4)$ ]]; do
-                _select "Default" "Hardened" "LTS" "ZEN"
-                read -r kern
+    _confirm "Do you wish to install default Linux Kernel?"
+    case ${CONFIRM} in
+
+        # Custom kernel
+        n|N|no|No|NO)
+            until [[ ${KERNEL} =~ ^[1-4]$ ]]; do
+                _select "DEFAULT" "HARDENED" "LTS" "ZEN"
+                read -r KERNEL
             done
-            kernel_choice=\
-(none default_kernel hardened_kernel lts_kernel zen_kernel)
-            export kernel=${kernel_choice[${kern}]}
+            KERNEL_CHOICE=(NONE LINUX LINUX_HARDENED LINUX_LTS LINUX_ZEN)
+            export KERNEL=${KERNEL_CHOICE[${KERNEL}]}
             ;;
+
+        # Default kernel
         *)
-            export kernel="default_kernel"
+            export KERNEL="LINUX"
             ;;
     esac
-    unset confirm
+    export KERNEL_NAME=${KERNEL//_/-}
+    unset CONFIRM
 
     # Desktop Environment
-    _confirm "Do you wish to install Desktop Environment?"
-    case ${confirm} in y|Y)
-        until [[ ${desk} =~ ^([1-9]|10)$ ]]; do
-            _select "Gnome" "KDE" "MATE" "Xfce" \
-"LXDE" "LXQt" "Deepin" "Budgie" "Cinnamon" "Enlightenment"
-            read -r desk
-        done
-        desktop_choice=\
-(none gnome kde mate xfce4 lxde lxqt deepin budgie cinnamon enlightenment)
-        export desktop=${desktop_choice[${desk}]}
-        ;;
+    _confirm "Do you wish to install a Desktop Environment?"
+    case ${CONFIRM} in
+        y|Y|yes|Yes|YES)
+            until [[ ${DESKTOP} =~ ^[1-9][0]?$ ]]; do
+                _select \
+"GNOME" "KDE" "MATE" "XFCE" "LXDE" "LXQT" \
+"DEEPIN" "BUDGIE" "CINNAMON" "ENLIGHTENMENT"
+                read -r DESKTOP
+            done
+            DESKTOP_CHOICE=\
+(NONE GNOME KDE MATE XFCE4 LXDE LXQT DEEPIN BUDGIE CINNAMON ENLIGHTENMENT)
+            export DESKTOP=${DESKTOP_CHOICE[${DESKTOP}]}
+            ;;
     esac
-    unset confirm
+    unset CONFIRM
 
     # Display Manager
-    if [[ ! -z ${desktop+x} ]]; then
-
-        _confirm "Use default Display Manager?"
-        case ${confirm} in
+    if [[ -n ${DESKTOP+x} ]]; then
+        _confirm \
+"Do you wish to install ${DESKTOP,,} default Display Manager?"
+        case ${CONFIRM} in
 
             # Custom display manager
-            n|N)
-                until [[ ${disp} =~ ^([1-5])$ ]]; do
-                    _select "Gdm" "LightDM" "Sddm" "Lxdm" "Xdm"
-                    read -r disp
+            n|N|no|No|NO)
+                until [[ ${DISPLAY_MAN} =~ ^[1-5]$ ]]; do
+                    _select "GDM" "LIGHTDM" "SDDM" "LXDM" "XDM"
+                    read -r DISPLAY_MAN
                 done
-                display_choice=(none gdm lightdm sddm lxdm xdm)
-                export display_man=${display_choice[${disp}]}
+                DISPLAY_CHOICE=(NONE GDM LIGHTDM SDDM LXDM XDM)
+                export DISPLAY_MAN=${DISPLAY_CHOICE[${DISPLAY_MAN}]}
                 ;;
 
             # Default display manager
             *)
-                case ${desktop} in
-                    gnome|budgie|cinnamon|mate) export display_man="gdm";;
-                    kde) export display_man="sddm";;
-                    deepin|enlightenment) export display_man="lightdm";;
-                    xfce4|lxde|lxqt) export display_man="lxdm";;
+                case ${DESKTOP} in
+                    GNOME|BUDGIE|CINNAMON|MATE) export DISPLAY_MAN="GDM";;
+                    KDE) export DISPLAY_MAN="SDDM";;
+                    DEEPIN|ENLIGHTENMENT) export DISPLAY_MAN="LIGHTDM";;
+                    XFCE4|LXDE|LXQT) export DISPLAY_MAN="LXDM";;
                 esac
                 ;;
         esac
-        unset confirm
+        unset CONFIRM
     fi
-
-    # Export required vars
-    export language; export keymap_code; export timezone
-    export HOST_name; export ROOT_passwd; export USER_name; export USER_passwd
 }
+
+_enable_user_rights() {
+
+    # Enable user in sudoers
+    _info "Enabling user ${USER_NAME} in sudoers"
+    echo "${USER_NAME} ALL=(ALL) ALL" >> /mnt/etc/sudoers
+
+    # Add user to all groups
+    _info "Adding user ${USER_NAME} to all groups"
+    _chroot "yes | pwck"
+    _chroot "yes | grpck"
+    GROUPLIST=$(cut -d: -f1 /mnt/etc/group)
+    for GROUP in ${GROUPLIST}; do
+        _chroot "gpasswd -a ${USER_NAME} ${GROUP}"
+    done
+}
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================

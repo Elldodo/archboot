@@ -1,67 +1,80 @@
 #!/bin/bash
 
-# ARCHLINUX BASE SYSTEM
+#                        ARCH LINUX BASE SYSTEM
 # ============================================================================
-# Here we install base system, all steps are described in the official
-# documentation: https://wiki.archlinux.org/index.php/Installation_guide
-# In case of Intel CPU we install intel microcode to enable microcode updates.
-# And if full rights given to the user we add him to sudoers with ALL power.
+# Here we install Arch Linux base system with the chosen linux kernel.
+# We use reflector service to automate mirrorlist sorting.
+# We install and enable CPU microcode updates <intel-ucode> or <amd-ucode>.
+# Then we create user account with the previously defined password.
+# All steps are described in the official documentation:
+# https://wiki.archlinux.org/index.php/Installation_guide
+# ============================================================================
 
-_base() {
+_install_base() {
 
     # Base System
-    _info "Installing base system"
-    user_kernel="_${kernel}"
-    yes '' | pacstrap /mnt ${_arch} ${!user_kernel}
+    _info "Installing base system with ${KERNEL_NAME,,} kernel"
+    yes '' | pacstrap /mnt ${ARCH} ${!KERNEL}
 
-    # fstab
-    _info "Setting and generating fstab"
+    # Fstab
+    _info "Setting file systems table"
     genfstab -U -p /mnt >> /mnt/etc/fstab
+    cat /mnt/etc/fstab
 
-    # TimeZone
-    _info "Setting time zone"
-    ln -sf /usr/share/zoneinfo/${timezone} /mnt/etc/localtime
+    # Timezone
+    _info "Setting timezone to ${TIMEZONE}"
+    ln -sf /usr/share/zoneinfo/${TIMEZONE} /mnt/etc/localtime
 
-    # locale
-    _info "Setting and generating locale"
-    echo "${language}.UTF-8 UTF-8" >> /mnt/etc/locale.gen
-    _chroot "locale-gen
-    export LANG=${language}.UTF-8"
-    echo "LANG=${language}.UTF-8" > /mnt/etc/locale.conf
+    # Locale
+    _info "Setting locale to ${LANGUAGE}.UTF-8"
+    echo "${LANGUAGE}.UTF-8 UTF-8" >> /mnt/etc/locale.gen
+    _chroot "locale-gen"
+    _chroot "export LANG=${LANGUAGE}.UTF-8"
+    echo "LANG=${LANGUAGE}.UTF-8" > /mnt/etc/locale.conf
 
-    # keyboard
-    _info "Setting vconsole"
-    echo "KEYMAP=${keymap_code}" > /mnt/etc/vconsole.conf
+    # Vconsole
+    _info "Setting virtual console to ${KEYMAP^^}"
+    echo "KEYMAP=${KEYMAP}" > /mnt/etc/vconsole.conf
 
-    # hostname
-    _info "Setting hostname"
-    echo "${HOST_name}" > /mnt/etc/hostname
+    # Hostname
+    _info "Setting hostname ${HOST_NAME}"
+    echo ${HOST_NAME} > /mnt/etc/hostname
 
-    # initramfs
-    #_info "Setting initramfs"
-    #_chroot "mkinitcpio -p linux"
-
-    # root passwd
+    # Root passwd
     _info "Setting root password"
-    _chroot "echo 'root:${ROOT_passwd}' | chpasswd"
+    _chroot "echo 'root:${ROOTPASSWD}' | chpasswd"
 
-    # network
-    _info "Installing network"
-    _chroot "pacman --noconfirm -S ${_netapps}
-    systemctl enable NetworkManager"
+    # Network
+    _info "Installing network manager"
+    _chroot "pacman --noconfirm -S ${NETAPPS}"
+    _chroot "systemctl enable NetworkManager"
 
-    # Intel Microcode
-    lscpu | grep "Intel" >/dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
+    # Reflector
+    _info "Installing reflector service"
+    _chroot "pacman --noconfirm -S ${REFLECTOR}"
+    mv reflector /mnt/etc/systemd/system/reflector.service
+    _chroot "systemctl enable reflector.service"
+
+    # Microcode
+    MICROCODE=$(lscpu | grep "Intel")
+    if [[ ${MICROCODE} ]]; then
         _info "Installing Intel CPU Microcode"
-        _chroot "pacman --noconfirm -S ${_intel}"
+        _chroot "pacman --noconfirm -S ${INTEL_UCODE}"
+        export MICROCODE="intel"
+    else
+        MICROCODE=$(lscpu | grep "AMD")
+        if [[ ${MICROCODE} ]]; then
+            _info "Installing AMD CPU Microcode"
+            _chroot "pacman --noconfirm -S ${AMD_UCODE}"
+            export MICROCODE="amd"
+        fi
     fi
 
-    # user
-    _info "Setting user ${USER_name}"
-    _chroot "useradd -g users -m -s /bin/bash ${USER_name}
-    echo '${USER_name}:${USER_passwd}' | chpasswd"
-    if [[ ! -z ${power+x} ]]; then
-        echo "${USER_name} ALL=(ALL) ALL" >> /mnt/etc/sudoers
-    fi
+    # User
+    _info "Setting user ${USER_NAME}"
+    _chroot "useradd -g users -m -s /bin/bash ${USER_NAME}"
+    _chroot "echo '${USER_NAME}:${USERPASSWD}' | chpasswd"
 }
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================

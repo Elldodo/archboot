@@ -1,23 +1,30 @@
 #!/bin/bash
 
-# SYSTEM APPLICATIONS
+#                         ARCH LINUX PACKAGES
 # ============================================================================
 
 # Arch Linux
-export _arch="base base-devel linux-firmware nano htop fail2ban"
+export ARCH="base base-devel linux-firmware nano htop fail2ban"
 
-# Kernel
-export _default_kernel="linux"
-export _hardened_kernel="linux-hardened"
-export _lts_kernel="linux-lts"
-export _zen_kernel="linux-zen"
+# Kernel (the one you like)
+export LINUX="linux"
+export LINUX_HARDENED="linux-hardened"
+export LINUX_LTS="linux-lts"
+export LINUX_ZEN="linux-zen"
 
-# Microcode (in case of Intel CPU)
-export _intel="intel-ucode"
+# Microcode
+export INTEL_UCODE="intel-ucode"
+export AMD_UCODE="amd-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap dhclient \
+export NETAPPS="ntp networkmanager wget nmap dhclient \
 nginx openssl certbot certbot-nginx"
 
-# Bootloader
-export _bootapps="grub os-prober"
+# Reflector
+export REFLECTOR="reflector"
+
+# Bootloader (BIOS only)
+export GRUB="grub os-prober"
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================
