@@ -10,7 +10,7 @@ export _arch="base linux"
 export _intel="intel-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap dhclient tcpdump ntfs-3g unzip gcc make cmake pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot git openssl openssh openvpn easy-rsa mariadb certbot certbot-nginx samba htop nginx imagemagick jenkins"
+export _netapps="ntp networkmanager wget nmap dhclient tcpdump ntfs-3g unzip gcc make cmake pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot git openssl openssh openvpn easy-rsa certbot certbot-nginx samba htop nginx imagemagick jenkins"
 
 # Bootloader
 export _bootapps="grub os-prober"
