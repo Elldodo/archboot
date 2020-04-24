@@ -71,7 +71,7 @@ _install_bootloader() {
         mv background.png /mnt/boot/grub/themes/Archlinux/background.png
         rm -rf /mnt/Grub2-themes
         echo "done"
-        
+
         # Configure Grub2
         _info "Setting Grub bootloader"
         _chroot "grub-mkconfig -o /boot/grub/grub.cfg"

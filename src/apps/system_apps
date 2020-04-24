@@ -20,9 +20,8 @@ export INTEL_UCODE="intel-ucode"
 export AMD_UCODE="amd-ucode"
 
 # Network
-export NETAPPS="ntp networkmanager wget nmap dhclient tcpdump ntfs-3g unzip gcc make cmake pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot git \
- openssl openssh openvpn easy-rsa certbot certbot-nginx samba htop nginx imagemagick jenkins ghostscript graphviz libreoffice-fresh-fr poppler poppler-data python-pip python-virtualenv redis \
- supervisor tesseract tesseract-data-fra nginx postgresql perl-image-exiftool"
+export NETAPPS="networkmanager wget git \
+net-tools dhcpcd iw wpa_supplicant wireless_tools"
 
 # Ntp (optional)
 export NTP="ntp"
