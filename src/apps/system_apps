@@ -1,16 +1,32 @@
 #!/bin/bash
 
-# SYSTEM APPLICATIONS
+#                         ARCH LINUX PACKAGES
 # ============================================================================
 
 # Arch Linux
-export _arch="base linux"
+export ARCH="base linux-firmware sudo"
 
-# Microcode (in case of Intel CPU)
-export _intel="intel-ucode"
+# Base devel (AUR only)
+export BASE_DEVEL="base-devel"
+
+# Kernel (optional)
+export LINUX="linux"
+export LINUX_HARDENED="linux-hardened"
+export LINUX_LTS="linux-lts"
+export LINUX_ZEN="linux-zen"
+
+# Microcode (matching CPU)
+export INTEL_UCODE="intel-ucode"
+export AMD_UCODE="amd-ucode"
 
 # Network
-export _netapps="ntp networkmanager wget nmap dhclient tcpdump ntfs-3g unzip gcc make cmake pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot git openssl openssh openvpn easy-rsa certbot certbot-nginx samba htop nginx imagemagick jenkins"
+export NETAPPS="networkmanager wget nmap dhclient tcpdump ntfs-3g unzip gcc make cmake pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot git openssl openssh openvpn easy-rsa certbot certbot-nginx samba htop nginx imagemagick jenkins"
 
-# Bootloader
-export _bootapps="grub os-prober"
+# Ntp (optional)
+export NTP="ntp"
+
+# Bootloader (BIOS only)
+export GRUB="grub os-prober"
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================

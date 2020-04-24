@@ -1,30 +1,36 @@
 #!/bin/bash
 
-# FIRMWARE DETECTION
+#                        FIRMWARE DETECTION
 # ============================================================================
 # Here we detect if system is running on UEFI or BIOS firmware to properly
-# define partitions oreder, type, table and filesystem.
-# More informations on partitioning are available in the official
-# documentation: https://wiki.archlinux.org/index.php/Partitioning
+# set partition table, code, type, boot filesystem and to store them.
+# ============================================================================
 
 _firmware() {
 
-    # Firmware Detection
     _info "Firmware detection"
-    export part_order=(0 1 2 3 4)
+
+    # UEFI Firmware
     if [ -d /sys/firmware/efi/efivars ]; then
         export FIRMWARE="UEFI"
-        export part_table="GPT"
-        export part_code="g"
-        export part_type=""
-        export boot_filesystem="fat -F32"
-        _note "UEFI firmware detected."
+        export PART_TABLE="GPT"
+        export PART_CODE="g"
+        export PART_TYPE=""
+        export MOUNT_TYPE="-t vfat "
+        export BOOT_FILESYSTEM="fat -F32"
+        _note "UEFI firmware detected!"
+
+    # BIOS Firmware
     else
-        FIRMWARE="BIOS"
-        export part_table="MBR"
-        export part_code="o"
-        export part_type="p\n"
-        export boot_filesystem="ext4"
-        _note "BIOS firmware detected."
+        export FIRMWARE="BIOS"
+        export PART_TABLE="MBR"
+        export PART_CODE="o"
+        export PART_TYPE="p\n"
+        export MOUNT_TYPE=""
+        export BOOT_FILESYSTEM="ext4"
+        _note "BIOS firmware detected!"
     fi
 }
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================

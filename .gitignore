@@ -1,9 +1,24 @@
-# Test scripts
-*_test*
-
-# Vscode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+*
+\!conf/00-keyboard.conf
+\!conf/language
+\!conf/loader.conf
+\!conf/timezone
+\!conf/xinitrc
+\!conf/xprofile
+\!src/apps/desktop_apps
+\!src/apps/display_apps
+\!src/apps/gpu_apps
+\!src/apps/system_apps
+\!src/arch/base
+\!src/arch/bootloader
+\!src/arch/desktop
+\!src/arch/display
+\!src/arch/firmware
+\!src/arch/gpu_driver
+\!src/arch/mirrorlist
+\!src/arch/mounting
+\!src/arch/partitioning
+\!src/arch/user
+\!archboot
+\!LICENSE
+\!README.md

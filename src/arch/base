@@ -1,69 +1,130 @@
 #!/bin/bash
 
-# ARCHLINUX BASE SYSTEM
+#                        ARCH LINUX BASE SYSTEM
 # ============================================================================
-# Here we install base system, all steps are described in the official
-# documentation: https://wiki.archlinux.org/index.php/Installation_guide
-# In case of Intel CPU we install intel microcode to enable microcode updates.
-# And if full rights given to the user we add him to sudoers with ALL power.
+# Here we install Arch Linux base system with the chosen linux kernel and
+# the corresponding CPU microcode updates <intel-ucode> or <amd-ucode>.
+# Then we create user account with the previously defined password and
+# we install an AUR Helper (optional) YAY PAMAC-AUR TRIZEN supported.
+# Finally we remove unused dependencies and we clean pacman cache.
+#
+# All steps are described in the official documentation:
+#
+#   https://wiki.archlinux.org/index.php/Installation_guide
+# ============================================================================
 
-_base() {
+_install_base() {
 
     # Base System
-    _info "Installing base system"
-    yes '' | pacstrap /mnt ${_arch}
-
-    # fstab
-    _info "Setting and generating fstab"
-    genfstab -U -p /mnt >> /mnt/etc/fstab
-
-    # TimeZone
-    _info "Setting time zone"
-    ln -sf /usr/share/zoneinfo/${timezone} /mnt/etc/localtime
-
-    # locale
-    _info "Setting and generating locale"
-    echo "${language}.UTF-8 UTF-8" >> /mnt/etc/locale.gen
-    _chroot "locale-gen
-    export LANG=${language}.UTF-8"
-    echo "LANG=${language}.UTF-8" > /mnt/etc/locale.conf
-
-    # keyboard
-    _info "Setting vconsole"
-    echo "KEYMAP=${keymap_code}" > /mnt/etc/vconsole.conf
-
-    # hostname
-    _info "Setting hostname"
-    echo "${HOST_name}" > /mnt/etc/hostname
-
-    # initramfs
-    _info "Setting initramfs"
-    _chroot "mkinitcpio -P"
-
-    # root passwd
-    _info "Setting root password"
-    _chroot "echo 'root:${ROOT_passwd}' | chpasswd"
-
-    # network
-    _info "Installing network"
-    _chroot "pacman --noconfirm -S ${_netapps}
-    systemctl enable NetworkManager"
-    
-    
-
-    # Intel Microcode
-    lscpu | grep "Intel" >/dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-        _info "Installing Intel CPU Microcode"
-        _chroot "pacman --noconfirm -S ${_intel}"
+    _info "Installing base system with ${KERNEL_NAME,,} kernel"
+    yes '' | pacstrap /mnt ${ARCH} ${!KERNEL}
+    if [[ ${AUR_HELPER} ]]; then
+        _info "Installing base devel"
+        yes '' | pacstrap /mnt ${BASE_DEVEL}
     fi
 
-    # user
-    _info "Setting user ${USER_name}"
-    _chroot "useradd -g users -m -s /bin/bash ${USER_name}
-    echo '${USER_name}:${USER_passwd}' | chpasswd"
-    if [[ ! -z ${power+x} ]]; then
-        echo "${USER_name} ALL=(ALL) ALL" >> /mnt/etc/sudoers
+    # Fstab
+    _info "Setting file systems table"
+    genfstab -U -p /mnt >> /mnt/etc/fstab
+    cat /mnt/etc/fstab
+
+    # Timezone
+    _info "Setting timezone to ${TIMEZONE}"
+    ln -sfv /usr/share/zoneinfo/${TIMEZONE} /mnt/etc/localtime
+    echo "done"
+
+    # Locale
+    _info "Setting locale to ${LANGUAGE}.UTF-8"
+    echo "${LANGUAGE}.UTF-8 UTF-8" >> /mnt/etc/locale.gen
+    _chroot "locale-gen"
+    _chroot "export LANG=${LANGUAGE}.UTF-8"
+    echo "LANG=${LANGUAGE}.UTF-8" > /mnt/etc/locale.conf
+    echo "done"
+
+    # Vconsole
+    _info "Setting virtual console to ${KEYMAP^^}"
+    echo "KEYMAP=${KEYMAP}" > /mnt/etc/vconsole.conf
+    echo "done"
+
+    # Hostname
+    _info "Setting hostname ${HOST_NAME}"
+    echo ${HOST_NAME} > /mnt/etc/hostname
+    echo "done"
+
+    # Root passwd
+    _info "Setting root password"
+    _chroot "echo 'root:${ROOTPASSWD}' | chpasswd"
+    echo "done"
+
+    # Network
+    _info "Installing network manager"
+    _chroot "pacman --noconfirm --needed -S ${NETAPPS}"
+    _chroot "systemctl enable NetworkManager"
+
+    # NTP
+    if [[ ${NTPD} ]]; then
+        _info "Installing network time protocol"
+        _chroot "pacman --noconfirm --needed -S ${NTP}"
+        _chroot "systemctl enable ntpd"
+    fi
+
+    # Microcode
+    MICROCODE=$(lscpu | grep "Intel")
+    if [[ ${MICROCODE} ]]; then
+
+        # Intel CPU
+        _info "Installing Intel CPU Microcode"
+        _chroot "pacman --noconfirm --needed -S ${INTEL_UCODE}"
+        export MICROCODE="intel"
+    else
+        # AMD CPU
+        MICROCODE=$(lscpu | grep "AMD")
+        if [[ ${MICROCODE} ]]; then
+            _info "Installing AMD CPU Microcode"
+            _chroot "pacman --noconfirm --needed -S ${AMD_UCODE}"
+            export MICROCODE="amd"
+        fi
+    fi
+
+    # User
+    _info "Setting user ${USER_NAME}"
+    _chroot "useradd -g users -m -s /bin/bash ${USER_NAME}"
+    _chroot "echo '${USER_NAME}:${USERPASSWD}' | chpasswd"
+    echo "done"
+}
+
+_install_AUR_helper() {
+    _info "Installing ${AUR_HELPER,,} AUR Helper"
+
+    # Allow user to run sudo without passwd
+    sed -i -e \
+"s/${USER_NAME} ALL=(ALL) ALL/${USER_NAME} ALL=(ALL) NOPASSWD: ALL/g" \
+/mnt/etc/sudoers
+
+    # Clone AUR Helper from aur.archlinux.org
+    _chroot "cd /home/${USER_NAME} && sudo -u ${USER_NAME} git clone \
+https://aur.archlinux.org/${AUR_HELPER,,}.git"
+
+    # Install AUR Helper
+    _chroot "cd /home/${USER_NAME}/${AUR_HELPER,,} && sudo -u ${USER_NAME} \
+makepkg --noconfirm --needed -sic"
+
+    # Deny user to run sudo without passwd
+    sed -i -e \
+"s/${USER_NAME} ALL=(ALL) NOPASSWD: ALL/${USER_NAME} ALL=(ALL) ALL/g" \
+/mnt/etc/sudoers
+
+    # Clean AUR Helper sources
+    rm -rf /mnt/home/${USER_NAME}/${AUR_HELPER,,}
+}
+
+_clean_dependencies() {
+    _info "Cleaning cache and unused dependencies"
+
+    # Remove unused dependencies
+    UNUSED_DEPENDENCIES=$(_chroot "pacman -Qdtq")
+    if [[ ${UNUSED_DEPENDENCIES} ]]; then
+        _chroot "pacman --noconfirm -Rcsn ${UNUSED_DEPENDENCIES}"
     fi
     
     _info "adding user gitolite and server"
@@ -73,4 +134,10 @@ _base() {
     _info "adding user server"
     _chroot "groupadd -r sambashare"
     _chroot "useradd -g sambashare -m -s /bin/bash server"
+
+    # Clean pacman cache
+    _chroot "pacman --noconfirm -Sc"
 }
+
+# archboot by grm34 under Apache License 2.0
+# ============================================================================
