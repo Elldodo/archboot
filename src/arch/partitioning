@@ -175,7 +175,7 @@ status=progress
         # Set EFI partition type for boot (UEFI firmware only)
         if [[ ${PART} == "BOOT_PARTITION" && ${FIRMWARE} == "UEFI" ]]; then
             _info "Setting EFI partiton type on ${DRIVE}${ORDER[${INDEX}]}"
-            printf "t\n1EF00\nw" | gdisk ${DRIVE}
+            printf "t\n1EF00\nw\nw" | gdisk ${DRIVE}
         fi
 
         # Inform changes to system
