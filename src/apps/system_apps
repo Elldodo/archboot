@@ -37,7 +37,7 @@ export NTFS_SUPPORT="ntfs-3g"
 
 # Network
 export NET_MANAGER="networkmanager"
-export NETAPPS="net-tools dhcpcd iw wpa_supplicant wireless_tools wget git openvpn subversion gitolite exfat-utils rsnapshot gcc make llvm qbs jenkins htop cronie zsh p7zip nano unzip jdk8-openjdk gradle gdb inetutils"
+export NETAPPS="nano nfs-utils rsync openssh"
 
 # archboot - Arch Linux Installer by grm34 under Apache License 2.0
 # ============================================================================

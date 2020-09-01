@@ -8,7 +8,7 @@ export GNOME="gnome"
 export GNOME_EXTRAS="gnome-extra"
 
 # Kde
-export KDE="plasma-desktop kdebase-meta plasma-nm konsole redshift vlc firefox qtcreator qbittorrent virtualbox netbeans inkscape thunderbird element-desktop signal-desktop nextcloud-client"
+export KDE="plasma konsole"
 export KDE_EXTRAS="kde-applications"
 
 # Mate
