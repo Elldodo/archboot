@@ -1,51 +1,68 @@
 #!/bin/bash
 
-# DESKTOP ENVIRONMENT
+#                     DESKTOP ENVIRONMENT PACKAGES
 # ============================================================================
 
 # Gnome
-export _gnome="gnome gnome-extra"
+export GNOME="gnome"
+export GNOME_EXTRAS="gnome-extra"
 
 # Kde
-export _kde="plasma-desktop kdebase-meta plasma-nm"
-
-# Lxde
-export _lxde="lxde"
-
-# Xfce
-export _xfce4="xfce4 xfce4-goodies"
-
-# Deepin
-export _deepin="deepin deepin-extra"
-
-# Cinnamon
-export _cinnamon="cinnamon"
-
-# Budgie
-export _budgie="budgie-desktop"
-
-# Enlightenment
-export _enlightenment="enlightenment"
+export KDE="plasma-desktop kdebase-meta plasma-nm konsole vlc firefox qtcreator qbittorrent virtualbox netbeans inkscape thunderbird element-desktop signal-desktop nextcloud-client"
+export KDE_EXTRAS="kde-applications"
 
 # Mate
-export _mate="mate mate-extra"
+export MATE="mate mate-terminal"
+export MATE_EXTRAS="mate-extra"
+
+# Xfce
+export XFCE4="xfce4"
+export XFCE4_EXTRAS="xfce4-goodies"
+
+# Deepin
+export DEEPIN="deepin deepin-terminal"
+export DEEPIN_EXTRAS="deepin-extra"
 
 # Lxqt
-export _lxqt="lxqt"
+export LXQT="lxqt"
+export LXQT_EXTRAS="breeze-icons"
 
-# REQUIRED PACKAGES
+# Cinnamon
+export CINNAMON="cinnamon gnome-terminal"
+
+# Budgie
+export BUDGIE="budgie-desktop gnome-terminal"
+
+# Enlightenment
+export ENLIGHTENMENT="enlightenment terminology"
+
+# Lxde
+export LXDE="lxde"
+
+#                       WINDOW MANAGER PACKAGES
 # ============================================================================
 
-# Xorg
-export _xorg="xorg-server"
+# awesome
+export AWESOME="awesome"
 
-# Fonts
-export _fonts="xorg-fonts-type1 ttf-dejavu font-bh-ttf \
-font-bitstream-speedo gsfonts sdl_ttf ttf-bitstream-vera \
-ttf-liberation ttf-freefont ttf-arphic-uming ttf-baekmuk"
+# i3
+export I3="i3"
+
+# xmonad
+export XMONAD="xmonad xmonad-contrib"
+
+#                         REQUIRED PACKAGES
+# ============================================================================
+
+# Xorg (xinit WM only)
+export XORG="xorg-server"
+export XORG_XINIT="xorg-xinit"
 
 # Numlock
-export _numlock="numlockx"
+export NUMLOCK="numlockx"
 
-# Terminal
-export _apps="vlc firefox qtcreator qbittorrent virtualbox netbeans inkscape thunderbird element-desktop signal-desktop nextcloud-client"
+# WM Dependencies (WM only)
+export WM_APPS="dmenu xterm"
+
+# archboot - Arch Linux Installer by grm34 under Apache License 2.0
+# ============================================================================

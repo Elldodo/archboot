@@ -1,318 +1,487 @@
 #!/bin/bash
-__appname__="archboot"
-__version__="v2.8.2"
-__branch__="master"
-__author__="@grm34"
-__license__="Apache v2.0 License"
+set > old_vars.log
 
+APPNAME="archboot"
+VERSION="v3.0.1"
+BRANCH="master"
+AUTHOR="EllDoDo"
+LICENSE="Apache License 2.0"
+
+### Description
 _archboot_banner() {
-    echo -e """${red}
-      _             _     _                 _
-     / \   _ __  __| |__ | |__   ___   ___ | |_
-    / _ \ | '__/ __| '_ \| '_ \ / _ \ / _ \| __|
-   / ___ \| | | (__| | | | |_) | (_) | (_) | |_
-  /_/   \_\_|  \___|_| |_|_.__/ \___/ \___/ \__|${green}${__version__}
-${blue}
- Welcome in archboot, a script made with love by ${__author__}
-${nc}
-Arch Linux is a light and fast distribution whose concept
-is to remain  as simple as possible.  In the same purpose
-this  script  perform  minimalist  installation,  it only
-install  the required  packages,  in order  to  give free
-choice to  the user.  Pretty simple,  it just  prompt for
-hostname, username, password, which disk to use, required
-partitions, language, timezone and if you wish to install
-a desktop  environment.  According to the  chosen one and
-in order  to get  complete  support, additional  packages
-may be  required. For more  informations, take a  look at
-the wiki.........: https://github.com/grm34/archboot/wiki
-"""
+    echo -e "${BLUE}
+┌─┐┬─┐┌─┐┬ ┬┌┐ ┌─┐┌─┐┌┬┐  ┌─┐┬─┐┌─┐┬ ┬  ┬┌┐┌┌─┐┌┬┐┌─┐┬  ┬  ┌─┐┬─┐
+├─┤├┬┘│  ├─┤├┴┐│ ││ │ │   ├─┤├┬┘│  ├─┤  ││││└─┐ │ ├─┤│  │  ├┤ ├┬┘
+┴ ┴┴└─└─┘┴ ┴└─┘└─┘└─┘ ┴   ┴ ┴┴└─└─┘┴ ┴  ┴┘└┘└─┘ ┴ ┴ ┴┴─┘┴─┘└─┘┴└─${RED}
+ Arch Linux Installer ${VERSION} - A script made with love by ${AUTHOR}
+${NC}
+  Arch Linux is a light and fast distribution whose concept is
+  to remain as  simple as possible. In the same purpose and in
+  order to give  free choice to the user, this script performs
+  minimal installation and only the  required packages will be
+  installed. Pretty simple  and customizable, some options are
+  supported like  AUR Helper, linux kernel, GPU driver, window
+  manager or  desktop environment. According to the chosen one
+  and in order to get complete support additional packages may
+  be required. For more information on archboot, see the wiki.\n"
 }
 
-# ARCHBOOT SYSTEM MANAGEMENT
+### Help and usage (--help or -h)
+_help() {
+    echo -e "${BLUE}
+Arch Linux Installer - A script made with love by ${AUTHOR}
+
+${BOLD}Usage: ${NC}sh ${APPNAME} [options]
+
+    ${BOLD}Options${NC}
+        -h, --help          show this help message
+        -l, --lang          set installer language
+        -k, --keyboard      set keyboard layout
+
+    ${BOLD}Language${NC}
+        -l, --lang          english
+                            french
+                            german      (by @At1768)
+
+    ${BOLD}Keyboard${NC}
+        -k, --keyboard      keyboard layout
+                            (run loadkeys on start)
+                            (e.q., --keyboard fr)
+
+${BOLD}For more information, see the wiki: \
+${CYAN}<http://tiny.cc/archboot-wiki>${NC}"
+}
+
+#                     SHARED VARIABLES AND FUNCTIONS
 # ============================================================================
-# Here we defined all required variables and functions to manage archboot.
-# Variables are pretty simple such as define needed url and colors.
-# Functions are used to display install steps, notes, errors or to do some
-# actions like cleanup after fatal error, execute cmd in chrooted environment,
-# select an option, ask some informations to the user or to get install logs.
+# Here we define all required variables and functions to manage archboot.
+# Guideline: functions always start with '_' and vars are always UPPERCASE.
+#
+# - Variables are pretty simple such as define script language, shell colors,
+#   required urls or error messages (required when locale vars unsourced).
+#
+# - Functions are used to handle install steps, notes, errors or to do some
+#   actions like cleanup after fatal error, execute command(s) in chrooted
+#   environment, select an option or to ask some information to the user.
+# ============================================================================
 
-# Github url: $_url for sources and $_gh_pages for images
-_url="https://raw.githubusercontent.com/Elldodo/archboot/${__branch__}"
-_gh_pages="https://raw.githubusercontent.com/Elldodo/archboot/gh-pages"
+### Installer default language
+ARCHBOOT_LANG="french"
 
-# Shell colors
-red="\e[1;31m"; green="\e[1;32m"; yellow="\e[1;33m"
-blue="\e[1;34m"; cyan="\e[1;36m"; nc="\e[0m"
+### Default error msg (required when locale vars unsourced)
+MSG_ERROR="you must reboot to prevent unreconized system changes."
+MSG_ERROR_GIT="do not run archboot from git repository folder!"
+MSG_KEYBOARD="keyboard interrupt!"
+MSG_CLEANUP="Cleaning up sources"
 
-# Display install steps
-_info() {
-    echo -e "${yellow}\n==> ${cyan}${1}...${nc}"
-    sleep 2s
-}
+### Shell color codes
+RED="\e[1;31m"; GREEN="\e[1;32m"; YELLOW="\e[1;33m"
+BLUE="\e[1;34m"; CYAN="\e[1;36m"; BOLD="\e[1;37m"; NC="\e[0m"
 
-# Display some notes
+### Current branch url
+export URL="https://raw.githubusercontent.com/${AUTHOR}/${APPNAME}/${BRANCH}"
+
+### Github pages url
+export GHPAGES=\
+"https://raw.githubusercontent.com/${AUTHOR}/${APPNAME}/gh-pages"
+
+### Display some notes
 _note() {
-    echo -e "${red}\nNote: ${blue}${1}${nc}"
+    echo -e "${RED}\nNote: ${BLUE}${1}${NC}"
 }
 
-# DL show progress bar only
+### Display install steps
+_info() {
+    echo -e "${YELLOW}\n==> ${CYAN}${1}...${NC}"; sleep 1
+}
+
+### Ask some information
+_prompt() {
+    LENTH=${*}; COUNT=${#LENTH}
+    echo -ne "\n${YELLOW}==> ${GREEN}${1} ${RED}${2}"
+    echo -ne "${YELLOW}\n==> "
+    for (( CHAR=1; CHAR<=COUNT; CHAR++ )); do echo -ne "-"; done
+    echo -ne "\n==> ${NC}"
+}
+
+### Ask confirmation (Yes/No)
+_confirm() {
+    unset CONFIRM; COUNT=$(( ${#1} + 6 ))
+    until [[ ${CONFIRM} =~ ^(y|n|Y|N|yes|no|Yes|No|YES|NO)$ ]]; do
+        echo -ne "${YELLOW}\n==> ${GREEN}${1} ${RED}[y/n]${YELLOW}\n==> "
+        for (( CHAR=1; CHAR<=COUNT; CHAR++ )); do echo -ne "-"; done
+        echo -ne "\n==> ${NC}"
+        read -r CONFIRM
+    done
+}
+
+### Select an option
+_select() {
+    COUNT=0
+    echo -ne "${YELLOW}\n==> "
+    for ENTRY in "${@}"; do
+        echo -ne "${RED}[$(( ++COUNT ))] ${GREEN}${ENTRY} ${NC}"
+    done
+    LENTH=${*}; NUMBER=$(( ${#*} * 4 ))
+    COUNT=$(( ${#LENTH} + NUMBER + 1 ))
+    echo -ne "${YELLOW}\n==> "
+    for (( CHAR=1; CHAR<=COUNT; CHAR++ )); do echo -ne "-"; done
+    echo -ne "\n==> ${NC}"
+}
+
+### Download show progress bar only
 _wget() {
-    wget ${1} -q --show-progress
+    wget "${1}" --quiet --show-progress
 }
 
-# Execute action in chrooted environment
+### Execute action in chrooted environment
 _chroot() {
     arch-chroot /mnt /bin/bash <<EOF
     ${1}
+    trap '_error ${MSG_KEYBOARD}' 1 2 3 6
 EOF
 }
 
-# Set logfile
-_logs() {
-    _info "Setting archboot log"
-    datetime=$(date '+%d-%m-%Y')
-    log="${__appname__}-${__version__}_${datetime}.log"
-}
-
-# Set system clock
-_clock() {
-    _info "Setting system clock"
-    timedatectl set-ntp true
-    timedatectl set-timezone ${timezone}
-    hwclock --systohc
-}
-
-# Check and return command status
+### Check command status and exit on error
 _check() {
-    "$@"
-    local status=$?
-    if [[ ${status} -ne 0 ]]; then
-        _error "with ${1}"
-    fi
-    return ${status}
+    "${@}"; local STATUS=$?
+    if [[ ${STATUS} -ne 0 ]]; then _error "${@}"; fi
+    return "${STATUS}"
 }
 
-# Cleanup archboot: delete sources, umount partitions and exit
+### Display error, cleanup and kill
+_error() {
+    echo -e "\n${RED}Error: ${YELLOW}${*}${NC}"
+    _note "${MSG_ERROR}"
+    sleep 1; _cleanup; _exit_msg; kill -9 $$
+}
+
+### Cleanup on keyboard interrupt
+trap '_error ${MSG_KEYBOARD}' 1 2 3 6
+
+### Delete sources and umount partitions
 _cleanup() {
-    echo -e "\nCleaning up archboot..."
-    for source in *; do
-        if [[ ${source} =~ ^(base|bootloader|desktop|display|firmware|\
-mounting|partition|user|vga|desktop_apps|display_apps|system_apps|vga_apps|\
-00-keyboard|language|timezone|xprofile|background.png|Grub2-themes)$ ]]; then
-            rm -rf ${source}
-        fi
+    _info "${MSG_CLEANUP}"
+
+    SRC=(base bootloader desktop display firmware gpu_driver mirrorlist \
+mounting partitioning user desktop_apps display_apps gpu_apps system_apps \
+00-keyboard.conf language loader.conf timezone xinitrc xprofile \
+background.png Grub2-themes *.log english french german)
+
+    # Sources (rm)
+    for SOURCE in "${SRC[@]}"; do
+        if [[ -f "${SOURCE}" ]]; then rm -rfv "${SOURCE}"; fi
     done
-    df | grep -q /mnt
-    if [[ $? -eq 1 ]]; then
-        umount -R /mnt
-    fi
-    sleep 2
-    exit 1
+
+    # Swap (swapoff)
+    CHECK_SWAP=$( swapon -s ); if [[ ${CHECK_SWAP} ]]; then swapoff -av; fi
+
+    # Partitions (umount)
+    if mount | grep /mnt; then umount -Rfv /mnt; fi
 }
 
-# Cleanup on keyboard interrupt
-trap _cleanup 1 2 3 6
-
-# Reboot with 10s timeout
+### Reboot with 10s timeout
 _reboot() {
-    for d in $(seq 10 -1 1); do
-        echo -ne "\r\033[K${green}System will reboot in ${d}s...${nc}"
+    for (( SECOND=10; SECOND>=1; SECOND-- )); do
+        echo -ne "\r\033[K${GREEN}${MSG_REBOOT} ${SECOND}s...${NC}"
         sleep 1
     done
-    reboot
+    reboot; exit 0
 }
 
-# Display error, cleanup and exit
-_error() {
-    echo -e "${red}Error: ${yellow}${1} Please try again.${nc}\n"
-    _cleanup
+### Say goodbye
+_exit_msg() {
+    echo -e "\n${GREEN}<<< ${BLUE}${APPNAME} ${VERSION} ${BOLD}by \
+${AUTHOR} ${RED}under ${LICENSE} ${GREEN}>>>${NC}"
 }
 
-# Select an option
-_select() {
-    count=0
-    echo -ne "${yellow}\n==> "
-    for entry in ${@}; do
-        echo -ne "${red}[$((++count))] ${green}${entry} ${nc}"
-    done
-    lenth=${@}
-    number=$((${#*} * 4))
-    count=$((${#lenth} + ${number} + 1))
-    echo -ne "${yellow}\n==> "
-    _end
-}
-
-# Ask confirmation (Yes/No)
-_confirm() {
-    count=$((${#1} + 6))
-    until [[ ${confirm} =~ ^(y|n|Y|N)$ ]]; do
-        echo -ne "${yellow}\n==> ${green}${1} ${red}[y/n]${yellow}\n==> "
-        _end
-        read -r confirm
-    done
-}
-
-# Ask some informations
-_prompt() {
-    lenth=${@}
-    count=${#lenth}
-    echo -ne "\n${yellow}==> ${green}${1} ${red}${2}"
-    echo -ne "${yellow}\n==> "
-    _end
-}
-
-# Display the end of select(), _confirm() and _prompt() functions
-_end() {
-    for char in $(seq ${count}); do
-        echo -ne "-"
-    done
-    echo -ne "\n==> ${nc}"
-}
-
-# ARCHBOOT SYSTEM PROCESS
+#                             HELP AND USAGE
 # ============================================================================
-# Here we check internet connection before downloading and importing sources.
-# Sources are sorted by type: applications and scripts [src/apps & src/arch]
-# Once done we could ask for user informations and stored them to run install.
-# In case of desktop environment, additionals sources will be imported and
-# scan of VGA controller(s) is done to select appropriate VGA Drivers.
+# Here we manage help and usage to properly describe and run archboot.
+# The only options are to select script language and to load keyboard layout.
+# Then we ensure not running script from repository folder to avoid deletes.
+#
+# Usage: sh archboot [options] (e.g., sh archboot -l french -k fr)
+# ============================================================================
 
-# Display archboot banner
+### Transform long options to short ones
+for OPT in "${@}"; do
+    shift
+    case ${OPT} in
+        "--help") set -- "${@}" "-h"; break;;
+        "--lang") set -- "${@}" "-l";;
+        "--keyboard") set -- "${@}" "-k";;
+        *) set -- "${@}" "${OPT}"
+    esac
+done
+
+### Option processing
+while getopts ':hl:k:' OPTION; do
+    case ${OPTION} in
+
+        # Help (-h, --help)
+        h)  _help; rm -f old_vars.log; _exit_msg; exit 0;;
+
+        # Installer language (-l, --lang)
+        l)  if [[ ${OPTARG} =~ ^(english$|french$|german$) ]]; then
+                ARCHBOOT_LANG="${OPTARG}"
+            else
+                echo -e "${RED}Error:${NC} invalid language '${OPTARG}'"
+                _help; rm -f old_vars.log; _exit_msg; exit 1
+            fi;;
+
+        # Keyboard layout (-k, --keyboard)
+        k)  loadkeys -q "${OPTARG}"; STATUS=$?
+            if [[ ${STATUS} -ne 1 ]]; then
+                export KEYMAP="${OPTARG}"
+            else
+                echo -e "${RED}Error:${NC} invalid keyboard '${OPTARG}'"
+                _help; rm -f old_vars.log; _exit_msg; exit 1
+            fi;;
+
+        # Missing argument
+        :)  echo -e "${RED}Error:${NC} missing argument for -${OPTARG}"
+            _help; rm -f old_vars.log; _exit_msg; exit 1;;
+
+        # Invalid option
+        \?) echo -e "${RED}Error:${NC} invalid option -${OPTARG}"
+            _help; rm -f old_vars.log; _exit_msg; exit 1
+    esac
+done
+
+### Remove options from positional parameters
+shift $(( OPTIND - 1 ))
+
+### Prevent running installer from repository folder
+CHECK_GITHUB=(.git .github .gitignore README.md STATS.md LICENSE)
+
+for FILE in "${CHECK_GITHUB[@]}"; do
+    if [[ -f ${FILE} || -d ${FILE} ]]; then
+
+        echo -e "${RED}Error: ${YELLOW}${MSG_ERROR_GIT}${NC}"
+        rm -f old_vars.log; _exit_msg; exit 1
+    fi
+done
+
+#             START SCRIPT - IMPORT SOURCES - GET USER VARIABLES
+# ============================================================================
+# Here we set installer language before downloading and importing sources.
+#
+# Sources are sorted by type:
+#
+#     - Arch Linux paquages    <src/apps>
+#     - archboot scripts       <src/arch>
+#     - config files           <src/conf>
+#     - archboot language      <locale>
+#
+# Then we can ask user variables and we properly store them. In case of DE/WM
+# we import additional sources like display manager and we get GPU controller
+# to properly set appropriate drivers with hardware video acceleration.
+#
+# Kernel mode setting support: in this case no GPU Driver will be installed.
+# ============================================================================
+
+### Set installer language
+_check wget -q "${URL}/locale/${ARCHBOOT_LANG,,}"
+_check source "./${ARCHBOOT_LANG,,}"
+
+### Display banner
 _archboot_banner
 
-# Check Internet Connection
-_info "Check Internet Connection"
-ping -c 1 archlinux.org >/dev/null 2>&1
-if [[ $? -eq 0 ]]; then
-    _note "OK, you are connected to Internet."
-else
-    _error "you are not connected to Internet. Ethernet seems not plugged in."
-fi
+### Download base sources
+_confirm "${MSG_CONFIRM_DL_SOURCES}"
+case ${CONFIRM} in
 
-# Download base sources
-_confirm "Start downloading sources from github?"
-case ${confirm} in
-    y|Y)
-        _info "Downloading base sources"
-        _wget ${_url}/src/arch/base            # to install Base system
-        _wget ${_url}/src/arch/bootloader      # to install Grub2 bootloader
-        _wget ${_url}/src/arch/firmware        # to define partitions settings
-        _wget ${_url}/src/arch/mounting        # to mount partitions & swap
-        _wget ${_url}/src/arch/partition       # to create table & partitions
-        _wget ${_url}/src/arch/user            # to ask user infos
-        _wget ${_url}/src/apps/system_apps     # to load system apps
-        _wget ${_url}/conf/language            # to get language code
-        _wget ${_url}/conf/timezone            # to get region code
-        ;;
-    *)
-        exit
-        ;;
+    y|Y|yes|Yes|YES)
+        _info "${MSG_DL_SRC_BASE}"
+        _wget "${URL}/src/arch/base"           # to install base system
+        _wget "${URL}/src/arch/bootloader"     # to install bootloader
+        _wget "${URL}/src/arch/firmware"       # to get firmware
+        _wget "${URL}/src/arch/mirrorlist"     # to get mirrorlist & timezone
+        _wget "${URL}/src/arch/mounting"       # to mount partitions & swap
+        _wget "${URL}/src/arch/partitioning"   # to set/create partitions
+        _wget "${URL}/src/arch/user"           # to get user variables
+        _wget "${URL}/src/apps/system_apps"    # to get system apps
+        _wget "${URL}/src/conf/language"       # to get language codes
+        _wget "${URL}/src/conf/timezone";;     # to get timezone codes
+
+    *) _cleanup; _exit_msg; exit 0
 esac
-unset confirm
 
-# Import base sources
-_info "Importing base sources"
-source ./base; source ./bootloader; source ./firmware
-source ./mounting; source ./partition; source ./user; source ./system_apps
+### Import base sources
+_info "${MSG_IMPORT_SRC_BASE}"
+BASE_SOURCES=\
+(base bootloader firmware mirrorlist mounting partitioning user system_apps)
 
-# Ask for user informations [src/arch/user]
-_ask_user_informations
+for SOURCE in "${BASE_SOURCES[@]}"; do
+    _check source "./${SOURCE}"
+done
+echo "-> ${MSG_DONE}"
 
-# If Desktop Environment
-if [[ ! -z ${desktop+x} ]]; then
+### Get user variables (src/arch/user)
+_get_user_variables
+
+### Desktop Environment
+if [[ ${DESKTOP} ]]; then
 
     # Download desktop sources
-    _info "Downloading desktop sources"
-    _wget ${_url}/src/arch/vga             # to scan/install VGA Controller
-    _wget ${_url}/src/arch/desktop         # to install Desktop Environment
-    _wget ${_url}/src/arch/display         # to install Display Manager
-    _wget ${_url}/src/apps/vga_apps        # to load VGA apps
-    _wget ${_url}/src/apps/desktop_apps    # to load Desktop apps
-    _wget ${_url}/src/apps/display_apps    # to load Display Manager apps
+    _info "${MSG_DL_SRC_DE}"
+    _wget "${URL}/src/arch/desktop"            # to install DE/WM
+    _wget "${URL}/src/arch/display"            # to install Display Manager
+    _wget "${URL}/src/arch/gpu_driver"         # to get/install GPU Driver
+    _wget "${URL}/src/apps/desktop_apps"       # to get Desktop apps
+    _wget "${URL}/src/apps/display_apps"       # to get Display Manager apps
+    _wget "${URL}/src/apps/gpu_apps"           # to get GPU Driver apps
+    _wget "${URL}/src/conf/00-keyboard.conf"   # to set keyboard layout
 
     # Import desktop sources
-    _info "Importing desktop sources"
-    source ./vga; source ./desktop; source ./display
-    source ./vga_apps; source ./desktop_apps; source ./display_apps
+    _info "${MSG_IMPORT_SRC_DE}"
+    DE_SOURCES=(desktop display gpu_driver desktop_apps display_apps gpu_apps)
 
-    # Scan VGA Controller and select appropriate driver [src/arch/vga]
-    _scan_vga_controller
+    for SOURCE in "${DE_SOURCES[@]}"; do
+        _check source "./${SOURCE}"
+    done
+    echo "-> ${MSG_DONE}"
+
+    # GPU driver (src/arch/gpu_driver) or Kernel mode setting
+    _note "${MSG_MODSETTING}"
+    _confirm "${MSG_CONFIRM_GPU}"
+
+    case ${CONFIRM} in
+        y|Y|yes|Yes|YES) _get_gpu_driver
+    esac
 fi
 
-# Prepare the system
-_clock; _logs; _firmware
-
-# Manage partitions
-_note "WARNING! Enter NO only if partitions properly created and formated"
-_confirm "Are you installing Arch Linux on a fresh disk?"
-case ${confirm} in
-    y|Y)
-        _partition
-        ;;
-    *)
-        _custom_partition
-        ;;
-esac
-unset confirm
-
-# Mount partitions
-_mounting
-
-_note "system ready! Partitions mounted & swap activated."
-
-# ARCHBOOT SYSTEM INSTALLATION
+#              PREPARE THE SYSTEM - FORMAT AND MOUNT PARTITIONS
 # ============================================================================
-# At this point system is ready, partitions are created, properly mounted and
-# user informations stored. We can start Arch Linux installation.
-# First step is to install base system [src/arch/base] and 2nd to install Grub
-# bootloader [src/arch/bootloader]. We use <tee> to get logs of those steps.
-# In case of desktop environment we install VGA Drivers and Display Manager.
-# If system won't start desktop environment after reboot, check the logs and
-# open an issue on GitHub. Logs are availables in /var/log/archboot.
+# Here we detect firmware, processor and ntfs partition(s) to properly
+# define partition settings, cpu microcode updates and ntfs support.
+# Then we get fastest mirrors, user timezone and we properly define them.
+# Then we configure live system clock (NTP) and we create installation logs.
+#
+# Finally we run partitioning, we activate SWAP and we mount the partitions.
+# ============================================================================
 
-_confirm "Do you wish to install Arch Linux now?"
-case ${confirm} in
-    y|Y)
-        (_base; _bootloader) 2>&1 | tee -a ${log}
+### Prepare the system
+_firmware; _cpu; _ntfs            # (src/arch/firmware)
+_mirrorlist; _timezone; _clock    # (src/arch/mirrorlist)
 
-        # Install desktop environment
-        if [[ ! -z ${desktop+x} ]]; then
-            (_install_vga_controller; _install_desktop_environment; \
-            _display_manager; _desktop_settings) 2>&1 | tee -a ${log}
+### Set logfiles
+_info "${MSG_SET_LOGS}"
+DATETIME=$( _check date '+%d-%m-%Y_%Hh%M' )
+INSTALL_LOG="${APPNAME}-${VERSION}_${DATETIME}.log"
+INPUTS_LOG="${USER_NAME}_${DATETIME}.log"
+_archboot_banner > "${INSTALL_LOG}"
+_archboot_banner > "${INPUTS_LOG}"
+echo "-> ${MSG_DONE}"
+
+### Partitioning (src/arch/partitioning)
+_note "${MSG_CUSTOM_PART_NOTE}"
+_confirm "${MSG_CONFIRM_DRIVE}"
+
+case ${CONFIRM} in
+    y|Y|yes|Yes|YES) _default_partitioning_scheme;;    # (default)
+    *) _custom_partitioning_scheme                     # (custom)
+esac
+
+### Mount (src/arch/mounting)
+_mount_partitions
+_note "${MSG_MOUNT}"
+sleep 1
+
+### Display user entries (so user can see them before running install)
+USER_ENTRIES=(USER_LANG TIMEZONE HOST_NAME USER_NAME LINUX_FW KERNEL \
+DESKTOP DISPLAY_MAN GREETER AUR_HELPER POWER GPU_DRIVER HARD_VIDEO)
+_info "${MSG_USER_ENTRIES}"
+
+for ENTRY in "${USER_ENTRIES[@]}"; do
+    if [[ ${!ENTRY} ]]; then
+        echo -e "${BOLD}* ${ENTRY}: ${NC}${!ENTRY}"
+    fi
+done
+
+#                         ARCH LINUX INSTALLATION
+# ============================================================================
+# At this point system is ready, partitions are created, properly mounted
+# and user variables stored, so now we can start Arch Linux installation.
+# First step is to install base system and second to install bootloader.
+# In case of desktop environment or window manager, we install GPU Drivers
+# and Display Manager. We also install an AUR Helper (optional).
+#
+# We use <tee> to get installation logs of those steps </var/log/archboot>.
+# If system won't start DE/WM after reboot, check the logs and open an issue.
+# ============================================================================
+
+_confirm "${MSG_CONFIRM_ARCH}"
+case ${CONFIRM} in
+    y|Y|yes|Yes|YES)
+
+        ### Arch Linux base system (src/arch/base, src/arch/bootloader)
+        (_install_base; _install_bootloader) 2>&1 | tee -a "${INSTALL_LOG}"
+
+        ### GPU Driver (src/arch/gpu_driver)
+        if [[ ${GPU_DRIVER} ]]; then
+            (_install_gpu_driver) 2>&1 | tee -a "${INSTALL_LOG}"
         fi
 
-        # Logfile path
-        _info "Setting logfile path"
-        mkdir /mnt/var/log/archboot
-        cp "${log}" /mnt/var/log/archboot/
+        ### DE / WM / DM (src/arch/desktop, src/arch/display, src/arch/user)
+        if [[ ${DESKTOP} ]]; then
+            (_install_desktop_environment; _configure_desktop_environment; \
+_install_display_manager; _enable_user_rights) 2>&1 | tee -a "${INSTALL_LOG}"
+        fi
 
-        # Success notes
-        _note "installation successful! // \
-${__appname__} ${__version__} by ${__author__} under ${__license__}"
+        ### Install AUR Helper (src/arch/base)
+        if [[ ${AUR_HELPER} ]]; then
+            (_install_AUR_helper) 2>&1 | tee -a "${INSTALL_LOG}"
+        fi
+
+        ### Clean cache and unused dependencies (src/arch/base)
+        (_clean_dependencies) 2>&1 | tee -a "${INSTALL_LOG}"
+
+        ### Get user inputs logs
+        _info "${MSG_INPUTS_LOGS}"
+
+        set | grep -v \
+"A=\|B=\|PASSWD=\|ROOTPASSWD=\|USERPASSWD=\|RED=\|GREEN=\|YELLOW=\|BLUE=\|\
+CYAN=\|BOLD=\|NC=\|ARGS=\|BASH_REMATCH=\|BYTES=\|CHAR=\|COLUMNS=\|CONFIRM=\|\
+COUNT=\|INDEX=\|LENTH=\|LINES=\|NUMBER=\|ORDER=\|PART=\|MSG_\|PIPESTATUS=\|\
+PARTITION_SIZE=\|PART_NAME=\|_CHOICE=\|BASE_SOURCES=\|DE_SOURCES=\|OPTION=\|\
+OPT=\|OPTIONAL=\|CHECK_COUNTRY_CODE=\|CHECK_IP=\|CHECK_MIRRORS=\|TOKEN=\|\
+SIZES_EQ=\|CPU_LIST=\|PARTITION=" > new_vars.log
+
+        diff old_vars.log new_vars.log | grep "^>" >> "${INPUTS_LOG}"
+        sed -i "$ d" "${INPUTS_LOG}"
+        echo "-> ${MSG_DONE}"
+
+        ### Move logs to system
+        _info "${MSG_MOVE_LOGS}"
+        mkdir -v /mnt/var/log/"${APPNAME}"
+        mv -v "${INSTALL_LOG}" "/mnt/var/log/${APPNAME}/"
+        mv -v "${INPUTS_LOG}" "/mnt/var/log/${APPNAME}/"
+        echo "-> ${MSG_DONE}"
+
+        ### Success note
+        _note "${MSG_ARCH_SUCCESS}"
         ;;
-
     *)
-        # Install aborted
-        _error "aborted by user!"
-        ;;
+        ### Installation aborted
+        _error "${MSG_ARCH_ABORTED}"
 esac
-unset confirm
 
-# ARCHBOOT SYSTEM REBOOT
+#                   CLEANUP SOURCES AND UMOUNT PARTITIONS
 # ============================================================================
-# And here we go! We could now cleanup sources, umount all partitions and
+# And here we go! We can now cleanup sources, umount all partitions and
 # reboot the computer to restart on our fresh Arch Linux installation.
+#
+# Telegram chat: t.me/archboot - Have fun, take care and give a star!
+# ============================================================================
 
-_confirm "Do you want to reboot your computer now?"
-case ${confirm} in
-    y|Y)
-        umount -R /mnt
-        _reboot
-        ;;
-    *)
-        _cleanup
-        ;;
+_confirm "${MSG_CONFIRM_REBOOT}"
+case ${CONFIRM} in
+
+    y|Y|yes|Yes|YES) _cleanup; _exit_msg; _reboot;;
+    *) _cleanup; _exit_msg; exit 0
 esac
 
-# archboot by grm34 under Apache v2.0 License.
+# archboot - Arch Linux Installer by grm34 under Apache License 2.0
+# ============================================================================

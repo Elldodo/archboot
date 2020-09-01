@@ -1,19 +1,28 @@
 #!/bin/bash
 
-# DISPLAY MANAGER
+#                       DISPLAY MANAGER PACKAGES
 # ============================================================================
 
 # GDM
-export _gdm="gdm"
-
-# LightDM
-export _lightdm="lightdm"
+export GDM="gdm"
 
 # SDDM
-export _sddm="sddm"
+export SDDM="sddm"
 
 # LXDM
-export _lxdm="lxdm"
+export LXDM="lxdm"
 
 # XDM
-export _xdm="xorg-xdm"
+export XDM="xorg-xdm xdm-archlinux"
+
+# LightDM
+export LIGHTDM="lightdm"
+
+# LightDM Greeter
+export GTK_GREETER="lightdm-gtk-greeter"
+export PANTHEON_GREETER="lightdm-pantheon-greeter"
+export WEBKIT_GREETER="lightdm-webkit2-greeter"
+export LITARVAN_GREETER="lightdm-webkit-theme-litarvan"
+
+# archboot - Arch Linux Installer by grm34 under Apache License 2.0
+# ============================================================================
