@@ -20,7 +20,7 @@ _mount_partitions() {
     _check mkdir -v /mnt/{boot,home}
 
     ### Mount boot > /mnt/boot
-    _check mount -v -t vfat ${BOOT_PARTITION} /mnt/boot
+    _check mount -v -t vfat /dev/sda1 /mnt/boot
 
     ### Activate swap
     if [[ ${SWAP_PARTITION} ]]; then
@@ -29,7 +29,7 @@ _mount_partitions() {
 
     ### Mount home > /mnt/home
     if [[ ${HOME_PARTITION} ]]; then
-        _check mount -v "${HOME_PARTITION}" /mnt/home
+        _check mount -v /dev/sda4 /mnt/home
     fi
 }
 
