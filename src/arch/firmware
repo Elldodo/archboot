@@ -19,7 +19,7 @@ _firmware() {
         export PART_TABLE="GPT"
         export PART_CODE="g"
         export MOUNT_TYPE="-t vfat "
-        export BOOT_FILESYSTEM="fat -F32"
+        export BOOT_FILESYSTEM="fat -F 32"
         _note "UEFI ${MSG_FW_TRUE}"
 
     ### BIOS
