@@ -282,7 +282,7 @@ ${SIZES[${INDEX}]} == "freespace" ]]; then
         _info "${MSG_FORMAT_PARTITION} ${PART_NAME} ${SIZES[${INDEX}]}"
 
         if [[ ${PART} == "BOOT_PARTITION" ]]; then
-            yes | _check mkfs."${BOOT_FILESYSTEM}" "${DRIVE_ID}"; sleep 1
+            yes | _check mkfs.fat -F 32 "${DRIVE_ID}"; sleep 1
 
         elif [[ ${PART} == "SWAP_PARTITION" ]]; then
             yes | _check mkswap "${DRIVE_ID}"; sleep 1
