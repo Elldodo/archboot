@@ -20,7 +20,7 @@ _mount_partitions() {
     _check mkdir -v /mnt/{boot,home}
 
     ### Mount boot > /mnt/boot
-    _check mount -v "${MOUNT_TYPE}${BOOT_PARTITION}" /mnt/boot
+    _check mount -v -t vfat ${BOOT_PARTITION} /mnt/boot
 
     ### Activate swap
     if [[ ${SWAP_PARTITION} ]]; then
