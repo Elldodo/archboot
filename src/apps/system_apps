@@ -37,7 +37,7 @@ export NTFS_SUPPORT="ntfs-3g"
 
 # Network
 export NET_MANAGER="networkmanager networkmanager-openvpn"
-export NETAPPS="net-tools iw wpa_supplicant wireless_tools wget git openvpn subversion gitolite exfat-utils rsnapshot gcc make llvm qbs jenkins htop cronie zsh p7zip nano unzip jdk8-openjdk gradle gdb inetutils diffstat chrpath xterm rpcsvc-proto socat cpio patch"
+export NETAPPS="net-tools iw wpa_supplicant wireless_tools wget git openvpn subversion gitolite exfat-utils rsnapshot gcc make llvm qbs jenkins htop cronie zsh p7zip nano unzip jdk8-openjdk gradle gdb nginx gst-plugins-good inetutils diffstat chrpath rpcsvc-proto socat cpio patch"
 
 # archboot - Arch Linux Installer by grm34 under Apache License 2.0
 # ============================================================================
