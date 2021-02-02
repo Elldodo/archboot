@@ -1,14 +1,26 @@
 *
-\!conf/00-keyboard.conf
-\!conf/language
-\!conf/loader.conf
-\!conf/timezone
-\!conf/xinitrc
-\!conf/xprofile
-\!src/apps/desktop_apps
-\!src/apps/display_apps
-\!src/apps/gpu_apps
-\!src/apps/system_apps
+
+### templates
+\!.github/ISSUE_TEMPLATE/bug_report.md
+\!.github/ISSUE_TEMPLATE/config.yml
+\!.github/ISSUE_TEMPLATE/feature_request.md
+\!.github/ISSUE_TEMPLATE/question.md
+\!.github/CODE_OF_CONDUCT.md
+\!.github/CONTRIBUTING.md
+\!.github/PULL_REQUEST_TEMPLATE.md
+
+### locale
+\!locale/english
+\!locale/french
+\!locale/german
+
+### src/apps
+\!src/arch/desktop_apps
+\!src/arch/display_apps
+\!src/arch/gpu_apps
+\!src/arch/system_apps
+
+### src/arch
 \!src/arch/base
 \!src/arch/bootloader
 \!src/arch/desktop
@@ -19,6 +31,17 @@
 \!src/arch/mounting
 \!src/arch/partitioning
 \!src/arch/user
+
+### src/conf
+\!src/conf/00-keyboard.conf
+\!src/conf/language
+\!src/conf/loader.conf
+\!src/conf/timezone
+\!src/conf/xinitrc
+\!src/conf/xprofile
+
+### origin
 \!archboot
 \!LICENSE
 \!README.md
+\!STATS.md
