@@ -25,7 +25,7 @@ _mirrorlist() {
         MIRRORLIST="/etc/pacman.d/mirrorlist"
 
         MIRRORS_URL=\
-"https://www.archlinux.org/mirrorlist/?country=${CODE}&use_mirror_status=on"
+"https://archlinux.org/mirrorlist/?country=${CODE}&use_mirror_status=on"
 
         USER_MIRRORS=\
 $( curl -s "${MIRRORS_URL}" | sed -e 's/^#Server/Server/' -e '/^#/d' )
