@@ -11,27 +11,27 @@
 
 _mount_partitions() {
 
-    _info "Mounting partitions and activating swap"
+    _info "${MSG_MOUNT_PARTITIONS}"
 
-    # Mount system > /mnt
-    _check mount -v ${SYSTEM_PARTITION} /mnt
+    ### Mount system > /mnt
+    _check mount -v "${ROOT_PARTITION}" /mnt
 
-    # Create boot and home folders
+    ### Create boot and home folders
     _check mkdir -v /mnt/{boot,home}
 
-    # Mount boot > /mnt/boot
-    _check mount -v ${MOUNT_TYPE}${BOOT_PARTITION} /mnt/boot
+    ### Mount boot > /mnt/boot
+    _check mount -v "${MOUNT_TYPE}${BOOT_PARTITION}" /mnt/boot
 
-    # Activate swap
+    ### Activate swap
     if [[ ${SWAP_PARTITION} ]]; then
-        _check swapon -v ${SWAP_PARTITION}
+        _check swapon -v "${SWAP_PARTITION}"
     fi
 
-    # Mount home > /mnt/home
+    ### Mount home > /mnt/home
     if [[ ${HOME_PARTITION} ]]; then
-        _check mount -v ${HOME_PARTITION} /mnt/home
+        _check mount -v "${HOME_PARTITION}" /mnt/home
     fi
 }
 
-# archboot by grm34 under Apache License 2.0
+# archboot - Arch Linux Installer by grm34 under Apache License 2.0
 # ============================================================================

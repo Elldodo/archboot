@@ -6,13 +6,14 @@
 #
 #    Required variables:
 #
-#      LANGUAGE.......: full list is available in the wiki
+#      USER_LANG......: full list is available in the wiki
 #      KEYMAP.........: keymap language code for keyboard
 #      HOST_NAME......: computer name such as <my-favorite-computer>
 #      ROOTPASSWD.....: at least 6 chars long with 1 letter & 1 digit
 #      USER_NAME......: such as <bobby_is_not_a_loser>
 #      USERPASSWD.....: at least 6 chars long with 1 letter & 1 digit
 #      KERNEL.........: DEFAULT - HARDENED - LTS - ZEN (optional)
+#      LINUX_FW.......: firmware blobs for use with the Linux kernel
 #      DESKTOP........: GNOME - KDE - DEEPIN - XFCE - LXDE - CINNAMON
 #                       BUDGIE - ENLIGHTENMENT - MATE - LXQT
 #                       AWESOME - i3 - XMONAD (optional)
@@ -26,149 +27,126 @@
 
 _get_user_variables() {
 
-    # Language
-    until grep -Fxq "${LANGUAGE}" ./language; do
-        _note "full list is available in the wiki."
-        _prompt "Enter language code:" "(e.g., fr_FR, en_US, de_DE)"
-        read -r LANGUAGE
+    ### Language
+    until grep -Fxq "${USER_LANG}" ./language; do
+        _note "${MSG_WIKI_EXAMPLE}"
+        _prompt "${MSG_PROMPT_LANGUAGE}" "${MSG_LANGUAGE_EXAMPLE}"
+        read -r USER_LANG
     done
-    export LANGUAGE
+    export USER_LANG
 
-    # Keymap
-    KEYMAP=$(echo ${LANGUAGE} | cut -d'_' -f 1)
-    export KEYMAP
+    ### Keymap (if not specified)
+    if [[ ! ${KEYMAP} ]]; then
+        KEYMAP=$( echo "${USER_LANG}" | cut -d'_' -f 1 )
+        export KEYMAP
+    fi
 
-    # Hostname
-    until [[ ${#HOST_NAME} -ge 3 \
-&& ${HOST_NAME} =~ ^[a-zA-Z0-9][-a-zA-Z0-9_]{1,31}$ ]]; do
-        _prompt "Enter hostname:" "(e.g., my-favorite-computer)"
+    ### Hostname
+    until [[ ${#HOST_NAME} -ge 3 && \
+${HOST_NAME} =~ ^[a-zA-Z0-9][-a-zA-Z0-9_]{1,31}$ ]]; do
+
+        _prompt "${MSG_PROMPT_HOSTNAME}" "${MSG_HOSTNAME_EXAMPLE}"
         read -r HOST_NAME
     done
     export HOST_NAME
 
-    # Root Password
-    until [[ ${#A} -ge 6 && ${A} == *[a-z]* && ${A} == *[0-9]* ]]; do
-        _note "should be at least 6 chars long with 1 letter & 1 digit"
-        _prompt "Enter root password:"
-        read -rs A
+    ### Root Password
+    PASSWD="root"; _secure_passwd
+
+    until [[ ${A} == "${B}" ]]; do
+        echo -e "${RED}Error:${YELLOW} ${MSG_PASSWD_FALSE}${NC}"
+        _secure_passwd
     done
-    echo
+    export ROOTPASSWD="${A}"
 
-    # Confirm Root Password
-    _prompt "Confirm root password:"
-    read -rs ROOTPASSWD
-    if [[ ${ROOTPASSWD} != "${A}" ]]; then
-        _error "passwords does not match!"
-    fi
-    export ROOTPASSWD
-    echo
+    ### Username
+    until [[ ${#USER_NAME} -ge 2 && ${USER_NAME} =~ \
+^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]; do
 
-    # Username
-    until [[ ${#USER_NAME} -ge 2 && ${USER_NAME} \
-=~ ^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]; do
-        _prompt "Enter username:" "(e.g., johnny)"
+        _prompt "${MSG_PROMPT_USERNAME}" "${MSG_USERNAME_EXAMPLE}"
         read -r USER_NAME
     done
     export USER_NAME
 
-    # User Password
-    until [[ ${#B} -ge 6 && ${B} == *[a-z]* && ${B} == *[0-9]* ]]; do
-        _note "should be at least 6 chars long with 1 letter & 1 digit"
-        _prompt "Enter password for user ${USER_NAME}:"
-        read -rs B
+    ### User Password
+    PASSWD="${USER_NAME}"; _secure_passwd
+
+    until [[ ${A} == "${B}" ]]; do
+        echo -e "${RED}Error:${YELLOW} ${MSG_PASSWD_FALSE}${NC}"
+        _secure_passwd
     done
-    echo
+    export USERPASSWD="${A}"; unset A B PASSWD
 
-    # Confirm User Password
-    _prompt "Confirm password for user ${USER_NAME}:"
-    read -rs USERPASSWD
-    if [[ ${USERPASSWD} != "${B}" ]]; then
-        _error "passwords does not match!"
-    fi
-    export USERPASSWD
-    echo
-
-    # Network time protocol
-    _confirm "Do you wish to use Network Time Protocol?"
-    case ${CONFIRM} in
-        y|Y|yes|Yes|YES)
-            export NTPD="True"
-            ;;
-    esac
-
-    # Linux Kernel
-    _confirm "Do you wish to install default Linux Kernel?"
+    ### Linux Kernel
+    _confirm "${MSG_CONFIRM_KERNEL}"
     case ${CONFIRM} in
 
         # Custom kernel
         n|N|no|No|NO)
+
             until [[ ${KERNEL} =~ ^[1-4]$ ]]; do
                 _select "DEFAULT" "HARDENED" "LTS" "ZEN"
                 read -r KERNEL
             done
+
             KERNEL_CHOICE=(NONE LINUX LINUX_HARDENED LINUX_LTS LINUX_ZEN)
-            export KERNEL=${KERNEL_CHOICE[${KERNEL}]}
-            ;;
+            export KERNEL=${KERNEL_CHOICE[${KERNEL}]};;
 
         # Default kernel
-        *)
-            export KERNEL="LINUX"
-            ;;
+        *) export KERNEL="LINUX"
     esac
     export KERNEL_NAME=${KERNEL//_/-}
 
-    # Desktop Environment / Window Manager
-    _confirm "Do you wish to install a Desktop Environment?"
+    ### Linux Firmware
+    _note "${MSG_WARN_FW}"
+    _confirm "${MSG_CONFIRM_FW}"
+    case ${CONFIRM} in y|Y|yes|Yes|YES) export LINUX_FW="True"; esac
+
+    ### DE / WM
+    _confirm "${MSG_CONFIRM_DESKTOP}"
     case ${CONFIRM} in
 
-        # DE
+        ## Desktop Environment
         y|Y|yes|Yes|YES)
 
             # Select DE
             until [[ ${DESKTOP} =~ ^[1-9][0]?$ ]]; do
-                _select \
-"GNOME" "KDE" "MATE" "XFCE" "LXDE" "LXQT" \
+
+                _select "GNOME" "KDE" "MATE" "XFCE" "LXDE" "LXQT" \
 "DEEPIN" "BUDGIE" "CINNAMON" "ENLIGHTENMENT"
                 read -r DESKTOP
             done
+
             DESKTOP_CHOICE=\
 (NONE GNOME KDE MATE XFCE4 LXDE LXQT DEEPIN BUDGIE CINNAMON ENLIGHTENMENT)
             export DESKTOP=${DESKTOP_CHOICE[${DESKTOP}]}
 
             # Additonals DE packages
-            case ${DESKTOP} in
-                GNOME|KDE|MATE|XFCE4|DEEPIN|LXQT)
-                    _confirm \
-"Do you wish to install ${DESKTOP,,} additionals packages?"
-                case ${CONFIRM} in
-                    y|Y|yes|Yes|YES)
-                        export DE_EXTRAS="${DESKTOP}_EXTRAS"
-                        ;;
-                esac
-                ;;
-            esac
-            ;;
+            case ${DESKTOP} in GNOME|KDE|MATE|XFCE4|DEEPIN|LXQT)
 
-        # WM
-        *)
-            _confirm "Do you wish to install a Window Manager?"
-            case ${CONFIRM} in
-                y|Y|yes|Yes|YES)
-                    until [[ ${DESKTOP} =~ ^[1-3]$ ]]; do
-                        _select "AWESOME" "I3" "XMONAD"
-                        read -r DESKTOP
-                    done
-                    DESKTOP_CHOICE=(NONE AWESOME I3 XMONAD)
-                    export DESKTOP=${DESKTOP_CHOICE[${DESKTOP}]}
-                    ;;
+                _confirm "${MSG_CONFIRM_DE_EXTRAS} ${DESKTOP} ?"
+                case ${CONFIRM} in y|Y|yes|Yes|YES)
+                    export DE_EXTRAS="${DESKTOP}_EXTRAS"
+                esac
+            esac;;
+
+        ## Window Manager
+        *)  _confirm "${MSG_CONFIRM_WM}"
+            case ${CONFIRM} in y|Y|yes|Yes|YES)
+
+                until [[ ${DESKTOP} =~ ^[1-3]$ ]]; do
+                    _select "AWESOME" "I3" "XMONAD"
+                    read -r DESKTOP
+                done
+
+                DESKTOP_CHOICE=(NONE AWESOME I3 XMONAD)
+                export DESKTOP=${DESKTOP_CHOICE[${DESKTOP}]}
             esac
-            ;;
     esac
 
-    # Display Manager
+    ### Display Manager
     if [[ ${DESKTOP} ]]; then
-        _confirm \
-"Do you wish to install ${DESKTOP,,} default Display Manager?"
+        _confirm "${MSG_CONFIRM_DISPLAY} ${DESKTOP} ?"
         case ${CONFIRM} in
 
             # Custom display manager
@@ -177,91 +155,100 @@ _get_user_variables() {
                     _select "GDM" "LIGHTDM" "SDDM" "LXDM" "XDM"
                     read -r DISPLAY_MAN
                 done
+
                 DISPLAY_CHOICE=(NONE GDM LIGHTDM SDDM LXDM XDM)
-                export DISPLAY_MAN=${DISPLAY_CHOICE[${DISPLAY_MAN}]}
-                ;;
+                export DISPLAY_MAN=${DISPLAY_CHOICE[${DISPLAY_MAN}]};;
 
             # Default display manager
-            *)
-                case ${DESKTOP} in
-                    GNOME|BUDGIE|CINNAMON|MATE) export DISPLAY_MAN="GDM";;
+            *)  case ${DESKTOP} in
+                    GNOME) export DISPLAY_MAN="GDM";;
                     KDE) export DISPLAY_MAN="SDDM";;
-                    DEEPIN|ENLIGHTENMENT) export DISPLAY_MAN="LIGHTDM";;
-                    XFCE4|LXDE|LXQT) export DISPLAY_MAN="LXDM";;
-                    *) export DISPLAY_MAN="XDM";;
+                    DEEPIN|BUDGIE|CINNAMON|MATE)
+                        export DISPLAY_MAN="LIGHTDM";;
+                    XFCE4|LXDE|LXQT|ENLIGHTENMENT)
+                        export DISPLAY_MAN="LXDM";;
+                    *) export DISPLAY_MAN="XDM"
                 esac
-                ;;
         esac
 
-        # LightDM Greeter
+        ## LightDM Greeter
         if [[ ${DISPLAY_MAN} == "LIGHTDM" ]]; then
-            _confirm "Do you wish to install LightDM default greeter?"
+            _confirm "${MSG_CONFIRM_GREETER}"
             case ${CONFIRM} in
 
-                # Custom LightDM Greeter
+                # Custom Greeter
                 n|N|no|No|NO)
                     until [[ ${GREETER} =~ ^[1-4]$ ]]; do
                         _select "GTK" "PANTHEON" "WEBKIT" "LITARVAN"
                         read -r GREETER
                     done
+
                     GREETER_CHOICE=\
 (NONE GTK_GREETER PANTHEON_GREETER WEBKIT_GREETER LITARVAN_GREETER)
-                    export GREETER=${GREETER_CHOICE[${GREETER}]}
-                    ;;
+                    export GREETER=${GREETER_CHOICE[${GREETER}]};;
 
-                # Default LightDM Greeter
-                *)
-                    case ${DESKTOP} in
+                # Default Greeter
+                *)  case ${DESKTOP} in
                         DEEPIN) export GREETER="DEEPIN_GREETER";;
                         *) export GREETER="GTK_GREETER";;
                     esac
-                    ;;
             esac
         fi
     fi
 
-    # AUR Helper
-    _confirm "Do you wish to install an AUR Helper?"
-    case ${CONFIRM} in
-        y|Y|yes|Yes|YES)
-            until [[ ${AUR_HELPER} =~ ^[1-3]$ ]]; do
-                _select "YAY" "PAMAC-AUR" "TRIZEN"
-                read -r AUR_HELPER
-            done
-            AUR_CHOICE=(NONE YAY PAMAC-AUR TRIZEN)
-            export AUR_HELPER=${AUR_CHOICE[${AUR_HELPER}]}
-            ;;
+    ### AUR Helper
+    _confirm "${MSG_CONFIRM_AUR_HELPER}"
+    case ${CONFIRM} in y|Y|yes|Yes|YES)
+
+        until [[ ${AUR_HELPER} =~ ^[1-6]$ ]]; do
+            _select "YAY" "PAMAC-AUR" "TRIZEN" "PACAUR" "PAKKU" "PIKAUR"
+            read -r AUR_HELPER
+        done
+
+        AUR_CHOICE=(NONE YAY PAMAC-AUR TRIZEN PACAUR PAKKU PIKAUR)
+        export AUR_HELPER=${AUR_CHOICE[${AUR_HELPER}]}
     esac
 
-    # User Rights
-    _confirm "Do you wish to add user ${USER_NAME} to all groups?"
-    case ${CONFIRM} in
-        y|Y|yes|Yes|YES)
-            export POWER="True"
-            ;;
-    esac
+    ### User Rights
+    _confirm "${MSG_CONFIRM_GROUP}"
+    case ${CONFIRM} in y|Y|yes|Yes|YES) export POWER="True"; esac
+}
+
+_secure_passwd() {
+
+    ### Get password
+    unset A B
+    until [[ ${#A} -ge 6 && ${A} == *[a-z]* && ${A} == *[0-9]* ]]; do
+        _note "${MSG_PASSWD_NOTE}"
+        _prompt "${MSG_PROMPT_PASSWD} ${PASSWD}"
+        read -rs A
+    done; echo
+
+    ### Confirm password
+    _prompt "${MSG_CONFIRM_PASSWD} ${PASSWD}"
+    read -rs B; echo
 }
 
 _enable_user_rights() {
 
-    # Enable user in sudoers
-    _info "Enabling user ${USER_NAME} in sudoers"
-    printf \
-"\n## ${USER_NAME} privilege specification\n${USER_NAME} ALL=(ALL) ALL" \
->> /mnt/etc/sudoers
-    echo "done"
+    ### Enable user in sudoers
+    _info "${MSG_INFO_SUDOERS}"
+    printf "\n## %s privilege specification\n%s ALL=(ALL) ALL" \
+"${USER_NAME}" "${USER_NAME}" >> /mnt/etc/sudoers
+    echo "-> ${MSG_DONE}"
 
-    # Add user to all groups
+    ### Add user to all groups
     if [[ ${POWER} ]]; then
-        _info "Adding user ${USER_NAME} to all groups"
+        _info "${MSG_INFO_ADD_GROUPS}"
         _chroot "yes | pwck"
         _chroot "yes | grpck"
-        GROUPLIST=$(cut -d: -f1 /mnt/etc/group)
+        GROUPLIST=$( cut -d: -f1 /mnt/etc/group )
+
         for GROUP in ${GROUPLIST}; do
             _chroot "gpasswd -a ${USER_NAME} ${GROUP}"
-        done
+        done; echo "-> ${MSG_DONE}"
     fi
 }
 
-# archboot by grm34 under Apache License 2.0
+# archboot - Arch Linux Installer by grm34 under Apache License 2.0
 # ============================================================================

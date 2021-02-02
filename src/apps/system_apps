@@ -4,10 +4,10 @@
 # ============================================================================
 
 # Arch Linux
-export ARCH="base linux-firmware sudo"
+export ARCH="base"
 
-# Base devel (AUR only)
-export BASE_DEVEL="base-devel"
+# Firmware
+export FW="linux-firmware"
 
 # Kernel (optional)
 export LINUX="linux"
@@ -16,20 +16,30 @@ export LINUX_LTS="linux-lts"
 export LINUX_ZEN="linux-zen"
 
 # Microcode (matching CPU)
-export INTEL_UCODE="intel-ucode"
-export AMD_UCODE="amd-ucode"
+export INTEL_CPU="intel-ucode"
+export AMD_CPU="amd-ucode"
 
-# Network
-export NETAPPS="networkmanager wget git \
-net-tools nmap dhcpcd tcpdump ntfs-3g unzip gcc make cmake qbs pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot \
-openssl openssh openvpn easy-rsa certbot certbot-nginx samba htop nginx imagemagick jenkins jdk8-openjdk ghostscript graphviz libreoffice-fresh-fr poppler poppler-data python-pip python-virtualenv redis \
-supervisor tesseract tesseract-data-fra nginx postgresql perl-image-exiftool libasound libpulse"
+# Base devel (AUR only)
+export BASE_DEVEL="base-devel"
 
-# Ntp (optional)
-export NTP="ntp"
+# LVM
+export LVM_SUPPORT="lvm2"
+
+# Sudo (grant user)
+export SUDO="sudo"
 
 # Bootloader (BIOS only)
-export GRUB="grub os-prober"
+export GRUB="grub"
+export GRUB_EXTRAS="os-prober"
 
-# archboot by grm34 under Apache License 2.0
+# NTFS support (optional)
+export NTFS_SUPPORT="ntfs-3g"
+
+# Network
+export NET_MANAGER="networkmanager"
+export NETAPPS="net-tools dhcpcd wget git tcpdump unzip gcc make cmake qbs pkgconf nano s-nail msmtp msmtp-mta perl python2 moreutils sudo ruby-bundler htop fail2ban rsnapshot \
+openssl openssh openvpn easy-rsa certbot certbot-nginx samba htop nginx imagemagick jenkins jdk8-openjdk ghostscript graphviz nginx postgresql libasound libpulse"
+# Mayan : libreoffice-fresh-fr poppler poppler-data python-pip python-virtualenv redis supervisor tesseract tesseract-data-fra perl-image-exiftool 
+
+# archboot - Arch Linux Installer by grm34 under Apache License 2.0
 # ============================================================================
