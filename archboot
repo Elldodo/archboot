@@ -3,8 +3,8 @@ set > old_vars.log
 
 APPNAME="archboot"
 VERSION="v3.0.1"
-BRANCH="master"
-AUTHOR="grm34"
+BRANCH="ma6"
+AUTHOR="elldodo"
 LICENSE="Apache License 2.0"
 
 ### Description
