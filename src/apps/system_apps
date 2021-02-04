@@ -37,7 +37,7 @@ export NTFS_SUPPORT="ntfs-3g"
 
 # Network
 export NET_MANAGER="networkmanager"
-export NETAPPS="net-tools dhcpcd wget git unzip gcc make cmake qbs pkgconf nano s-nail msmtp msmtp-mta perl moreutils ruby-bundler htop fail2ban rsnapshot openssh openvpn easy-rsa certbot certbot-nginx htop nginx imagemagick jenkins jdk8-openjdk ghostscript graphviz nginx postgresql alsa-lib libpulse"
+export NETAPPS="net-tools dhcpcd wget git unzip gcc make cmake qbs pkgconf nano s-nail msmtp msmtp-mta perl moreutils htop fail2ban rsnapshot openssh easy-rsa certbot certbot-nginx htop jenkins jdk8-openjdk ghostscript graphviz apache php7-apache mariadb p7zip"
 # Mayan : python2 libreoffice-fresh-fr poppler poppler-data python-pip python-virtualenv redis supervisor tesseract tesseract-data-fra perl-image-exiftool samba
 
 # archboot - Arch Linux Installer by grm34 under Apache License 2.0
